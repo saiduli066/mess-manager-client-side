@@ -6,6 +6,12 @@ import Login from "../pages/Login";
 import SignUp from "../pages/SignUp";
 import Profile from "@/pages/Profile";
 import Reports from "@/pages/Reports";
+import { CreateMess } from "@/components/CreateMess";
+import { JoinMess } from "@/components/JoinMess";
+import MessEntryOptions from "@/components/MessEntryOptions";
+import ProtectRoutes from "./ProtectRoutes";
+import AddEntryForm from "@/pages/AddEntry";
+import AddEntry from "@/pages/AddEntry";
 
 export const router = createBrowserRouter([
   {
@@ -15,17 +21,18 @@ export const router = createBrowserRouter([
       {
         path: "/home",
         element: (
-         
+          <ProtectRoutes>
+
             <Home />
-         
+          </ProtectRoutes>
+
         ),
       },
       {
         path: "/landing",
         element: (
-         
-            <LandingPage />
-         
+          <LandingPage />
+
         ),
       },
       {
@@ -37,19 +44,52 @@ export const router = createBrowserRouter([
         element: <SignUp />,
       },
       {
+        path: "/create-mess",
+        element: <ProtectRoutes>
+          <CreateMess />
+        </ProtectRoutes>,
+      },
+      {
+        path: "/join-mess",
+        element: <ProtectRoutes>
+          <JoinMess />
+        </ProtectRoutes>,
+      },
+      {
+        path: "/entry-options",
+        element: <ProtectRoutes>
+
+          <MessEntryOptions />
+        </ProtectRoutes>,
+      },
+      {
         path: "/profile",
-        element: <Profile />,
+        element: <ProtectRoutes>
+
+          <Profile />
+        </ProtectRoutes>,
       },
       {
         path: "/add-deposit",
-        element: <Profile />,
+        element: <ProtectRoutes>
+          <AddEntry />
+        </ProtectRoutes>,
+      },
+      {
+        path: "/add-meal",
+        element: <ProtectRoutes>
+          <AddEntry />
+        </ProtectRoutes>,
       },
       {
         path: "/reports",
-        element: <Reports />,
+        element: <ProtectRoutes>
+
+          <Reports />
+        </ProtectRoutes>,
       },
-     
-     
+
+
     ],
   },
   // {

@@ -2,6 +2,7 @@ import { Utensils, Wallet, DollarSign, Users } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
+import GoBackBtn from "@/components/GoBackBtn"
 
 const Home = () => {
     // Sample data for now
@@ -23,9 +24,12 @@ const Home = () => {
 
 
     return (
-        <div className="p-2 sm:p-4 relative">
-            {/* Fixed Header Section */}
-            <div className="sticky top-0 z-50 mb-4 w-full sm:m-4">
+        <div className=" p-4 relative">
+
+           
+
+            {/* Header Section */}
+            <div className="z-40 mb-4 w-full sm:m-4">
                 <h2 className="text-lg sm:text-xl font-semibold bg-[#121b31] text-center">Overview for May 2025</h2>
 
             </div>

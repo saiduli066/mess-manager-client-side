@@ -1,10 +1,33 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
+import { useAuthStore } from './store/useAuthStore';
+import { useEffect } from 'react';
+import type { IAuthStore } from './lib/types&interfaces/auth';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const App = () => {
+  const checkAuth = useAuthStore((state: IAuthStore) => state.checkAuth);
+  const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   const location = useLocation();
-  const hideSidebarRoutes = ['/sign-up', '/login','/landing'];
+  const hideSidebarRoutes = ['/sign-up', '/login', '/landing', '/join-mess', '/create-mess', '/entry-options'];
   const isAuthPage = hideSidebarRoutes.includes(location.pathname);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#121b31]">
+        <DotLottieReact
+          src="https://lottie.host/26dfed0f-655e-4d48-bbd1-86cc7bdfd29c/Ia0U6ar4rU.lottie"
+          loop
+          autoplay
+        />
+      </div>
+    );
+  }
 
   if (isAuthPage) {
     return (

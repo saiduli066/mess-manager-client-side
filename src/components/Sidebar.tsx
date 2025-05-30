@@ -8,9 +8,11 @@ import {
     BarChart3,
     User,
     Menu,
-    X
+    X,
+    Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const navItems = [
     { to: '/home', label: 'Home', icon: <Home className="h-5 w-5" /> },
@@ -22,6 +24,10 @@ const navItems = [
 ];
 
 const Sidebar = () => {
+
+
+    const { logout, isLoggingOut,authUser } = useAuthStore();
+
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -59,7 +65,7 @@ const Sidebar = () => {
                         </button>
                     </div>
 
-                    {/* Navigation Links */}
+                    {/* NavLinks */}
                     <nav className="flex-1 overflow-y-auto px-2 py-4 flex flex-col gap-2">
                         {navItems.map((item) => (
                             <NavLink
@@ -81,17 +87,23 @@ const Sidebar = () => {
                     <div className="p-4 border-t border-white/10">
                         <div className="flex items-center gap-3 mb-3">
                             <img
-                                src="https://i.pravatar.cc/40"
+                                src={authUser?.image}
                                 alt="Profile"
                                 className="w-8 h-8 rounded-full"
                             />
                             <div>
-                                <p className="text-sm font-medium">John Doe</p>
-                                <p className="text-xs text-gray-400">Admin</p>
+                                <p className="text-sm font-medium">{authUser?.name}</p>
+                                <p className="text-xs text-gray-400">{authUser?.email}</p>
                             </div>
                         </div>
-                        <Button variant="outline" className="w-full text-black">
-                            Logout
+                        <Button disabled={isLoggingOut} onClick={logout} variant="outline" className="w-full cursor-pointer text-black">
+                           {isLoggingOut ? (
+                                          <>
+                                            <Loader2 className="animate-spin mr-2" /> Loading...
+                                          </>
+                                        ) : (
+                                          <>Logout</>
+                                        )}
                         </Button>
                     </div>
                 </div>
