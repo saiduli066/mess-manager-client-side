@@ -1,11 +1,14 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import { useAuthStore } from './store/useAuthStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { IAuthStore } from './lib/types&interfaces/auth';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { Menu } from 'lucide-react';
 
 const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const checkAuth = useAuthStore((state: IAuthStore) => state.checkAuth);
   const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth);
 
@@ -38,22 +41,27 @@ const App = () => {
   }
 
   return (
-    <div className="flex h-screen text-white">
+    <div className="flex h-screen text-white relative">
+      {/* Mobile Toggle Button */}
+      <button
+        className="md:hidden fixed top-1 left-1 p-2 bg-[#0F1729] rounded-md z-50"
+        onClick={() => setIsSidebarOpen(true)}
+        aria-label="Open sidebar"
+      >
+        <Menu className="h-6 w-6 text-white" />
+      </button>
+
       {/* Sidebar */}
-      <div className="flex relative">
-        <Sidebar />
-        {/* Divider */}
-        <div className="absolute right-0 top-0 bottom-0 w-px bg-gray-300 hidden md:block" />
-      </div>
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      {/* Divider */}
+      <div className="absolute right-0 top-0 bottom-0 w-px bg-gray-300 hidden md:block" />
 
       {/* Main Content */}
       <main className="flex-1 bg-[#121b31] overflow-y-auto transition-all duration-300">
-        <div className="p-4 md:p-6">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
     </div>
   );
-};
-
+}
 export default App;

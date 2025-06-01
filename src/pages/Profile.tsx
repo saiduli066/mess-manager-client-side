@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
+import { useMessStore } from "@/store/useMessStore";
 
 const Profile = () => {
   const {
@@ -15,6 +16,8 @@ const Profile = () => {
     getProfile,
     updateProfile,
   } = useAuthStore();
+
+  const { mess } = useMessStore();
 
   const [phone, setPhone] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -69,7 +72,7 @@ const Profile = () => {
     <div className="min-h-screen bg-[#0F1729] text-white px-4 py-10">
       <div className="max-w-xl mx-auto bg-[#1A253A] rounded-2xl p-8 shadow-lg space-y-8">
         <div className="flex flex-col items-center gap-4">
-          <Avatar className="w-24 h-24 ring-2 ring-cyan-500">
+          <Avatar className="w-24 h-24 ring-2 ring-purple-600">
             <AvatarImage src={imagePreview || undefined} alt="User" />
             <AvatarFallback>{authUser.name[0]}</AvatarFallback>
           </Avatar>
@@ -77,7 +80,7 @@ const Profile = () => {
             type="file"
             accept="image/*"
             onChange={handleImageChange}
-            className="max-w-xs text-sm text-gray-200 file:bg-cyan-600 file:text-white"
+            className="max-w-xs text-sm text-gray-200 file:bg-gray-500 file:px-1 file:text-white"
           />
         </div>
 
@@ -115,14 +118,14 @@ const Profile = () => {
         </div>
 
         <div className="text-sm text-gray-400 italic">
-          You are <span className="font-semibold text-cyan-400">{authUser.role}</span> at{" "}
-          <span className="font-semibold text-cyan-400">{authUser.messName}</span>
+          You are <span className="font-semibold text-purple-400">{authUser.role}</span> at{" "}
+          <span className="font-semibold text-purple-500">{mess?.name}</span>
         </div>
 
         <Button
           onClick={handleUpdate}
           disabled={isUpdatingProfile}
-          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white transition-all"
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white transition-all"
         >
           {isUpdatingProfile ? "Updating..." : "Update Profile"}
         </Button>

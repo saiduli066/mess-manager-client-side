@@ -92,11 +92,11 @@ export const useMessStore = create<MessState>((set) => ({
   },
   
 
-  getMessEntries: async (messId, month) => {
+  getMessEntries: async (messId, month?: string, year?: string) => {
     try {
       set({ isLoading: true });
-      const res = await axiosInstance.get("/mess-entries/" + messId, {
-        params: { month },
+      const res = await axiosInstance.get(`/mess-entries/${messId}`, {
+        params: { month, year }, 
       });
       set({ entriesReport: res.data });
     } catch (err: any) {
@@ -106,5 +106,6 @@ export const useMessStore = create<MessState>((set) => ({
     } finally {
       set({ isLoading: false });
     }
-  },
+  }
+  
 }));

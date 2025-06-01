@@ -29,13 +29,11 @@ export interface TMess {
   members: string[];
 }
 
-// Input for adding entries
 export interface MessEntryInput {
   userId: string;
   amount: number;
 }
 
-// Response format for summary
 export interface MessEntrySummary {
   userId: string;
   name: string;
@@ -56,7 +54,6 @@ export interface EntryReport {
   summary: MessEntrySummary[];
 }
 
-// Final Zustand MessStore state and methods
 export interface MessState {
   mess: TMess | null;
   members: TMember[];
@@ -71,9 +68,13 @@ export interface MessState {
 
   addMessEntry: (
     type: EntryType,
-    messId: string,
-    entries: MessEntryInput[]
+    entries: MessEntryInput[],
+    messId?: string
   ) => Promise<void>;
 
-  getMessEntries: (messId: string, month?: string) => Promise<void>;
+  getMessEntries: (
+    messId: string,
+    month?: string,
+    year?: string
+  ) => Promise<void>;
 }

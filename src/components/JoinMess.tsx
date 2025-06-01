@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { PlusCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +12,12 @@ export const JoinMess = () => {
     const [code, setCode] = useState("");
     const [searchParams] = useSearchParams();
     const [hasAutoJoined, setHasAutoJoined] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const inviteCode = searchParams.get("code");
 
-        // Only auto-join if code is present and hasn't already joined
+        //  auto-join if code is present.
         if (inviteCode && !hasAutoJoined) {
             setCode(inviteCode);
             joinMess(inviteCode);
@@ -26,8 +27,8 @@ export const JoinMess = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!code.trim()) return;
         await joinMess(code.trim());
+        navigate("/home");
         setCode("");
     };
 

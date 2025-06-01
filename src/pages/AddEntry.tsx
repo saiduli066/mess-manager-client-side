@@ -23,7 +23,7 @@ const AddEntry = () => {
 
   useEffect(() => {
     getMessMembers();
-  }, []);
+  }, [getMessMembers]);
 
   useEffect(() => {
     setEntries(
@@ -48,37 +48,41 @@ const AddEntry = () => {
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto mt-6">
+    <div className="w-full  px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto mt-6">
       <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">
         {isMeal ? "Add Meal Count" : "Add Deposit"}
       </h2>
 
-      <div className="space-y-4">
+      <div className="space-y-4 ">
         {members.map((member) => (
-          <Card key={member._id} className="w-full">
-            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4">
+          <Card
+            key={member._id}
+            className="text-white bg-gray-900 bg-opacity-30 backdrop-blur-sm rounded-md border border-gray-600 shadow-lg"
+            >
+            <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3">
               <div className="flex items-center gap-3">
                 <img
                   src={member.image}
                   alt={member.name}
                   className="w-10 h-10 rounded-full object-cover"
                 />
-                <span className="text-sm sm:text-base">{member.name}</span>
+                <span className=" text-sm sm:text-base font-medium">
+                  {member.name}
+                </span>
               </div>
               <Input
                 type="number"
-                min="0"
+                min={0}
                 value={
                   entries.find((entry) => entry.userId === member._id)?.amount || 0
                 }
-                onChange={(e) =>
-                  handleAmountChange(member._id, Number(e.target.value))
-                }
+                onChange={(e) => handleAmountChange(member._id, Number(e.target.value))}
                 className="w-full sm:w-32"
                 placeholder={`Enter ${isMeal ? "meal count" : "amount"}`}
               />
             </CardContent>
           </Card>
+        
         ))}
       </div>
 
@@ -86,13 +90,12 @@ const AddEntry = () => {
         <Button
           onClick={handleSubmit}
           disabled={isLoading}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto bg-purple-700 hover:bg-purple-800 mb-4"
         >
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Saving...
-            </>
+              Loading...            </>
           ) : (
             `Add ${isMeal ? "Meal" : "Deposit"}`
           )}

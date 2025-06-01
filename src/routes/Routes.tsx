@@ -10,14 +10,19 @@ import { CreateMess } from "@/components/CreateMess";
 import { JoinMess } from "@/components/JoinMess";
 import MessEntryOptions from "@/components/MessEntryOptions";
 import ProtectRoutes from "./ProtectRoutes";
-import AddEntryForm from "@/pages/AddEntry";
 import AddEntry from "@/pages/AddEntry";
+import { AddMember } from "@/pages/AddMember";
+import Main from "@/components/Main";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
+      {
+        path: "/",
+        element: <Main />
+      },
       {
         path: "/home",
         element: (
@@ -79,6 +84,12 @@ export const router = createBrowserRouter([
         path: "/add-meal",
         element: <ProtectRoutes>
           <AddEntry />
+        </ProtectRoutes>,
+      },
+      {
+        path: "/add-member",
+        element: <ProtectRoutes>
+          <AddMember />
         </ProtectRoutes>,
       },
       {
