@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 
 const MessEntryOptions = () => {
+    
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1f0036] to-[#3c006f] px-4">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl rounded-2xl w-full max-w-md p-8 md:p-12 space-y-6 text-white">
@@ -10,7 +11,7 @@ const MessEntryOptions = () => {
                     </div>
                 </div> */}
 
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-4 md:w-auto w-[70%] mx-auto">
                     <Link
                         to="/create-mess"
                         className="w-full bg-yellow-500 hover:bg-yellow-600 text-white text-center font-semibold py-2 rounded-full transition"

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useMessStore } from "@/store/useMessStore";
 import { Clipboard } from "@ark-ui/react/clipboard";
-import { ClipboardCopyIcon, CheckIcon, UserPlusIcon } from "lucide-react";
+import { ClipboardCopyIcon, CheckIcon, UserPlusIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
@@ -11,6 +11,10 @@ export const AddMember = () => {
     useEffect(() => {
         if (!mess) getMessInfo();
     }, [mess, getMessInfo]);
+
+    if (isLoading) {
+        return <Loader2 className="animate-spin mr-2" />
+    }
 
     const inviteCode = mess?.code || "";
     const inviteLink = `${window.location.origin}/join-mess?code=${inviteCode}`;

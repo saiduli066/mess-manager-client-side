@@ -12,13 +12,14 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
+import { Avatar, AvatarFallback } from './ui/avatar';
 
 const navItems = [
     { to: '/home', label: 'Home', icon: <Home className="h-5 w-5" /> },
     { to: '/add-meal', label: 'Add Meal Count', icon: <UtensilsCrossed className="h-5 w-5" /> },
     { to: '/add-member', label: 'Add Member', icon: <Users className="h-5 w-5" /> },
     { to: '/add-deposit', label: 'Add Deposit', icon: <PlusCircle className="h-5 w-5" /> },
-    { to: '/reports', label: 'Reports', icon: <BarChart3 className="h-5 w-5" /> },
+    { to: '/records', label: 'Records', icon: <BarChart3 className="h-5 w-5" /> },
     { to: '/profile', label: 'My Profile', icon: <User className="h-5 w-5" /> },
 ];
 type SidebarProps = {
@@ -82,7 +83,15 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     {/* Profile Section */}
                     <div className="p-4 border-t border-white/10">
                         <div className="flex items-center gap-3 mb-3">
-                            <img src={authUser?.image} alt="Profile" className="w-8 h-8 rounded-full" />
+                            <div className='ring-2 text-purple-600 rounded-full'>
+                                {
+                                    authUser?.image ? <>                            <img src={authUser?.image} alt="Profile" className="w-8 h-8 rounded-full" />
+                                        <img src={authUser?.image} alt="Profile" className="w-8 h-8 rounded-full" />
+                                     </> : <Avatar>
+                                        <AvatarFallback className="flex items-center justify-center w-full h-full bg-muted text-muted-foreground">
+                                            <User className="w-10 h-10 text-gray-400" />
+                                        </AvatarFallback></Avatar>
+                                } </div>
                             <div>
                                 <p className="text-sm font-medium">{authUser?.name}</p>
                                 <p className="text-xs text-gray-400">{authUser?.email}</p>
@@ -110,4 +119,3 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 };
 
 export default Sidebar;
-  

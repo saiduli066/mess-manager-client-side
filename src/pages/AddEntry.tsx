@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import type { EntryType, MessEntryInput } from "@/lib/types&interfaces/mess";
-import { Loader2 } from "lucide-react";
+import { Loader2,  User2Icon } from "lucide-react";
 import { useMessStore } from "@/store/useMessStore";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const AddEntry = () => {
   const location = useLocation();
@@ -19,11 +21,16 @@ const AddEntry = () => {
     addMessEntry,
   } = useMessStore();
 
+  const { authUser } = useAuthStore();
+
+ 
+
   const [entries, setEntries] = useState<MessEntryInput[]>([]);
 
   useEffect(() => {
     getMessMembers();
   }, [getMessMembers]);
+  
 
   useEffect(() => {
     setEntries(
@@ -33,6 +40,17 @@ const AddEntry = () => {
       }))
     );
   }, [members]);
+
+
+  if (authUser?.role === "member") {
+    return (
+    <div className="flex justify-center items-center min-h-[200px] sm:min-h-[250px] md:min-h-[300px] w-full px-2">
+        <span className="text-base sm:text-lg md:text-xl font-semibold text-yellow-600 text-center">
+          Only Mess Admin can add deposit/meal entries.
+        </span>
+      </div>
+    )
+  }
 
   const handleAmountChange = (userId: string, value: number) => {
     setEntries((prev) =>
@@ -61,11 +79,14 @@ const AddEntry = () => {
             >
             <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3">
               <div className="flex items-center gap-3">
-                <img
+            {member?.image?    <img
                   src={member.image}
                   alt={member.name}
                   className="w-10 h-10 rounded-full object-cover"
-                />
+                />:<Avatar>
+                  <AvatarFallback className="flex items-center justify-center w-full h-full bg-muted text-muted-foreground">
+                    <User2Icon className="w-10 h-10 text-gray-400" />
+                  </AvatarFallback></Avatar>}
                 <span className=" text-sm sm:text-base font-medium">
                   {member.name}
                 </span>

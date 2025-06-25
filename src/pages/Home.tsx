@@ -10,8 +10,11 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import { useMessStore } from "@/store/useMessStore";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+    const navigate = useNavigate();
+
     const {
         mess,
         entriesReport,
@@ -21,12 +24,33 @@ const Home = () => {
     } = useMessStore();
 
     useEffect(() => {
-        if (!mess) getMessInfo();
+        if (!mess) {
+            getMessInfo();
+        }
     }, [mess, getMessInfo]);
 
     useEffect(() => {
-        if (mess?._id) getMessEntries(mess._id);
+        if (mess !== undefined && (!mess?._id || mess?._id.trim() === "")) {
+            navigate("/entry-options", { replace: true });
+        }
+    }, [mess, navigate]);
+
+    useEffect(() => {
+        if (mess?._id) {
+            getMessEntries(mess._id);
+        }
     }, [mess?._id, getMessEntries]);
+
+    if (mess === undefined) {
+        return (
+            <div className="h-screen w-full flex justify-center items-center">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+        );
+      }
+    if (mess && (!mess._id || mess._id.trim() === "")) {
+        return null;
+    }
 
     const {
         totalMeals = 0,
@@ -38,8 +62,9 @@ const Home = () => {
     return (
         <div className="p-4 space-y-6">
             <div className="text-center text-xl md:text-4xl text-medium">Current Month</div>
+
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 ">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card className="shadow-md rounded-2xl">
                     <CardContent className="py-3 md:py-4 text-center space-y-2">
                         <p className="text-sm text-muted-foreground">Total Members</p>

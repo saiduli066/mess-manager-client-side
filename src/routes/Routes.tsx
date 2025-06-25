@@ -5,7 +5,6 @@ import LandingPage from "../pages/LandingPage";
 import Login from "../pages/Login";
 import SignUp from "../pages/SignUp";
 import Profile from "@/pages/Profile";
-import Reports from "@/pages/Reports";
 import { CreateMess } from "@/components/CreateMess";
 import { JoinMess } from "@/components/JoinMess";
 import MessEntryOptions from "@/components/MessEntryOptions";
@@ -13,6 +12,7 @@ import ProtectRoutes from "./ProtectRoutes";
 import AddEntry from "@/pages/AddEntry";
 import { AddMember } from "@/pages/AddMember";
 import Main from "@/components/Main";
+import Records from "@/pages/Reports";
 
 export const router = createBrowserRouter([
   {
@@ -93,10 +93,10 @@ export const router = createBrowserRouter([
         </ProtectRoutes>,
       },
       {
-        path: "/reports",
+        path: "/records",
         element: <ProtectRoutes>
 
-          <Reports />
+          <Records />
         </ProtectRoutes>,
       },
 

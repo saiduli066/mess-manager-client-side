@@ -8,7 +8,7 @@ export type TSignupData = {
   email: string;
   password: string;
   phone?: string;
-  image?: string;
+  image?: string; 
 };
 
 export interface IAuthUser {
@@ -22,10 +22,8 @@ export interface IAuthUser {
   createdAt: string;
   updatedAt: string;
 }
-type TUpdateProfile = {
-  image?: string;
-  phone?: string;
-};
+
+export type TUpdateProfile = FormData;
 
 export interface IAuthStore {
   authUser: IAuthUser | null;
@@ -41,5 +39,5 @@ export interface IAuthStore {
   login: (data: TLoginData) => Promise<void>;
   logout: () => Promise<void>;
   getProfile: () => Promise<void>;
-  updateProfile: (data: TUpdateProfile) => Promise<void>;
+  updateProfile: (data: { phone: string; image?: File }) => Promise<void>;
 }

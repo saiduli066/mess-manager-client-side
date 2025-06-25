@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -15,13 +15,13 @@ type SignUpFormData = {
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<SignUpFormData>({
     name: "",
     email: "",
     password: "",
-    phone: "",
-    image: "",
   });
 
   const { isSigningUp, signup } = useAuthStore();
@@ -71,8 +71,13 @@ const SignUp = () => {
     await signup(formData);
 
     if (useAuthStore.getState().authUser) {
-      navigate("/entry-options");
+      if (from === "/") {
+        navigate("/entry-options", { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     }
+
   };
 
   return (

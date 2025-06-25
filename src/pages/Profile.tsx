@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { useMessStore } from "@/store/useMessStore";
+import { User } from "lucide-react";
 
 const Profile = () => {
   const {
@@ -25,7 +26,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (!authUser) getProfile();
-  }, []);
+  }, [authUser, getProfile]);
 
   useEffect(() => {
     if (authUser) {
@@ -39,20 +40,18 @@ const Profile = () => {
     if (!file) return;
 
     imageFileRef.current = file;
+
     const reader = new FileReader();
     reader.onloadend = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // Only for preview
   };
 
   const handleUpdate = async () => {
-    const formData = new FormData();
-    formData.append("phone", phone);
-    if (imageFileRef.current) {
-      formData.append("image", imageFileRef.current);
-    }
-
     try {
-      await updateProfile(formData);
+      await updateProfile({
+        phone,
+        image: imageFileRef.current || undefined,
+      });
     } catch {
       toast.error("Profile update failed.");
     }
@@ -73,8 +72,13 @@ const Profile = () => {
       <div className="max-w-xl mx-auto bg-[#1A253A] rounded-2xl p-8 shadow-lg space-y-8">
         <div className="flex flex-col items-center gap-4">
           <Avatar className="w-24 h-24 ring-2 ring-purple-600">
-            <AvatarImage src={imagePreview || undefined} alt="User" />
-            <AvatarFallback>{authUser.name[0]}</AvatarFallback>
+            {imagePreview ? (
+              <AvatarImage src={imagePreview} alt="User" />
+            ) : (
+              <AvatarFallback className="bg-muted text-muted-foreground flex items-center justify-center w-full h-full">
+                <User className="w-10 h-10 text-gray-400" />
+              </AvatarFallback>
+            )}
           </Avatar>
           <Input
             type="file"
@@ -118,8 +122,14 @@ const Profile = () => {
         </div>
 
         <div className="text-sm text-gray-400 italic">
-          You are <span className="font-semibold text-purple-400">{authUser.role}</span> at{" "}
-          <span className="font-semibold text-purple-500">{mess?.name}</span>
+          {mess?.name ? (
+            <>
+              You are <span className="font-semibold text-purple-400">{authUser.role}</span> at{" "}
+              <span className="font-semibold text-purple-500">{mess.name}</span>
+            </>
+          ) : (
+            <>You're not joined in any mess.</>
+          )}
         </div>
 
         <Button

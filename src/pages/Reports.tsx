@@ -33,7 +33,7 @@ const getYearOptions = () => {
     }));
 };
 
-const Reports = () => {
+const Records = () => {
     const {
         mess,
         entriesReport,
@@ -60,8 +60,8 @@ const Reports = () => {
     return (
         <div className="p-4 space-y-6">
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex flex-col space-y-1">
+            <div className="flex ml-9 md:ml-2 flex-row gap-3 md:gap-4">
+                <div className="flex flex-col  space-y-1">
                     <Label>Month</Label>
                     <Select value={month} onValueChange={setMonth}>
                         <SelectTrigger className="w-40">
@@ -166,4 +166,4 @@ const Reports = () => {
     );
 };
 
-export default Reports;
+export default Records;

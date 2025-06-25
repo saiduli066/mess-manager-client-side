@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { Clipboard } from "@ark-ui/react/clipboard";
-import { Building, CheckIcon, ClipboardCopyIcon, SettingsIcon, UtensilsCrossedIcon } from "lucide-react";
+import { Building, CheckIcon, ClipboardCopyIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMessStore } from "@/store/useMessStore";
+import { useNavigate } from "react-router-dom";
 
 export const CreateMess = () => {
+    const navigate = useNavigate();
+   
+
     const { createMess, mess, isLoading } = useMessStore();
     const [name, setName] = useState("");
 
@@ -14,6 +18,8 @@ export const CreateMess = () => {
         e.preventDefault();
         if (!name.trim()) return;
         await createMess(name.trim());
+        navigate("/home");
+
         setName("");
     };
 

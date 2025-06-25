@@ -72,10 +72,30 @@ export const useAuthStore = create<IAuthStore>((set) => ({
     try {
       const res = await axiosInstance.get("/profile");
 
-      const { _id, name, email, phone, image, messName, role, createdAt, updatedAt } = res.data;
+      const {
+        _id,
+        name,
+        email,
+        phone,
+        image,
+        messName,
+        role,
+        createdAt,
+        updatedAt,
+      } = res.data;
 
       set({
-        authUser: { _id, name, email, phone, image, messName, role, createdAt, updatedAt },
+        authUser: {
+          _id,
+          name,
+          email,
+          phone,
+          image,
+          messName,
+          role,
+          createdAt,
+          updatedAt,
+        },
       });
     } catch (err: any) {
       console.error("Failed to fetch profile:", err);
@@ -85,17 +105,27 @@ export const useAuthStore = create<IAuthStore>((set) => ({
     }
   },
 
-  updateProfile: async (data) => {
+  updateProfile: async (data: { phone: string; image?: File }) => {
     set({ isUpdatingProfile: true });
 
     try {
-      const res = await axiosInstance.put("/profile", data);
+      const formData = new FormData();
+      formData.append("phone", data.phone);
+
+      if (data.image) {
+        formData.append("image", data.image);
+      }
+
+      const res = await axiosInstance.put("/profile", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       const updatedUser = res.data.user;
 
       set((state) => ({
-        authUser: state.authUser
-          ? { ...state.authUser, ...updatedUser }
-          : null,
+        authUser: state.authUser ? { ...state.authUser, ...updatedUser } : null,
       }));
 
       toast.success("Profile updated successfully");
