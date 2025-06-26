@@ -83,9 +83,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     {/* Profile Section */}
                     <div className="p-4 border-t border-white/10">
                         <div className="flex items-center gap-3 mb-3">
-                            <div className='ring-2 text-purple-600 rounded-full'>
+                            <div className='ring-1 text-purple-600 rounded-full'>
                                 {
-                                    authUser?.image ? <>                            <img src={authUser?.image} alt="Profile" className="w-8 h-8 rounded-full" />
+                                    authUser?.image ? <>                            
                                         <img src={authUser?.image} alt="Profile" className="w-8 h-8 rounded-full" />
                                      </> : <Avatar>
                                         <AvatarFallback className="flex items-center justify-center w-full h-full bg-muted text-muted-foreground">

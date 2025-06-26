@@ -8,7 +8,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Loader2, User } from "lucide-react";
 import { useMessStore } from "@/store/useMessStore";
 import { Label } from "@/components/ui/label";
 import {
@@ -146,11 +146,17 @@ const Records = () => {
                             {summary.map((member) => (
                                 <TableRow key={member.userId}>
                                     <TableCell>
-                                        <img
-                                            src={member.image}
-                                            alt={member.name}
-                                            className="h-10 w-10 rounded-full object-cover"
-                                        />
+                                        {member.image ? (
+                                            <img
+                                                src={member.image}
+                                                alt={member.name}
+                                                className="h-10 w-10 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-muted">
+                                                <User className="w-5 h-5 text-muted-foreground" />
+                                            </div>
+                                        )}
                                     </TableCell>
                                     <TableCell className="font-medium">{member.name}</TableCell>
                                     <TableCell>৳ {member.totalDeposit}</TableCell>

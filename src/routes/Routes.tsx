@@ -12,7 +12,7 @@ import ProtectRoutes from "./ProtectRoutes";
 import AddEntry from "@/pages/AddEntry";
 import { AddMember } from "@/pages/AddMember";
 import Main from "@/components/Main";
-import Records from "@/pages/Reports";
+import Records from "@/pages/Records";
 
 export const router = createBrowserRouter([
   {

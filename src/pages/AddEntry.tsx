@@ -73,36 +73,41 @@ const AddEntry = () => {
 
       <div className="space-y-4 ">
         {members.map((member) => (
-          <Card
+            <Card
             key={member._id}
-            className="text-white bg-gray-900 bg-opacity-30 backdrop-blur-sm rounded-md border border-gray-600 shadow-lg"
+            className="w-[70%] md:w-[60%] mx-auto bg-gradient-to-tr from-purple-900/80 via-gray-900/70 to-gray-800/80 border border-purple-700 shadow-xl rounded-xl transition-transform hover:scale-[1.02] hover:shadow-2xl"
             >
-            <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3">
-              <div className="flex items-center gap-3">
-            {member?.image?    <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                />:<Avatar>
-                  <AvatarFallback className="flex items-center justify-center w-full h-full bg-muted text-muted-foreground">
-                    <User2Icon className="w-10 h-10 text-gray-400" />
-                  </AvatarFallback></Avatar>}
-                <span className=" text-sm sm:text-base font-medium">
-                  {member.name}
-                </span>
+            <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-6 p-5">
+              <div className="flex items-center gap-4">
+              {member?.image ? (
+                <img
+                src={member.image}
+                alt={member.name}
+                className="w-12 h-12 rounded-full object-cover border-2 border-purple-600 shadow"
+                />
+              ) : (
+                <Avatar>
+                <AvatarFallback className="flex items-center justify-center w-full h-full bg-purple-800 text-purple-200">
+                  <User2Icon className="w-8 h-8" />
+                </AvatarFallback>
+                </Avatar>
+              )}
+              <span className="text-base sm:text-lg font-semibold text-white drop-shadow">
+                {member.name}
+              </span>
               </div>
               <Input
-                type="number"
-                min={0}
-                value={
-                  entries.find((entry) => entry.userId === member._id)?.amount || 0
-                }
-                onChange={(e) => handleAmountChange(member._id, Number(e.target.value))}
-                className="w-full sm:w-32"
-                placeholder={`Enter ${isMeal ? "meal count" : "amount"}`}
+              type="number"
+              min={0}
+              value={
+                entries.find((entry) => entry.userId === member._id)?.amount || 0
+              }
+              onChange={(e) => handleAmountChange(member._id, Number(e.target.value))}
+              className="w-full sm:w-36 bg-gray-800/80 border border-purple-700 text-white placeholder:text-purple-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-400"
+              placeholder={`Enter ${isMeal ? "meal count" : "amount"}`}
               />
             </CardContent>
-          </Card>
+            </Card>
         
         ))}
       </div>

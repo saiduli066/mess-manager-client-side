@@ -8,20 +8,12 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Loader2, User } from "lucide-react";
 import { useMessStore } from "@/store/useMessStore";
-import { useNavigate } from "react-router-dom";
 
 const Home = () => {
-    const navigate = useNavigate();
 
-    const {
-        mess,
-        entriesReport,
-        getMessInfo,
-        getMessEntries,
-        isLoading,
-    } = useMessStore();
+    const { mess, entriesReport, getMessInfo, getMessEntries, isLoading } = useMessStore();
 
     useEffect(() => {
         if (!mess) {
@@ -30,34 +22,24 @@ const Home = () => {
     }, [mess, getMessInfo]);
 
     useEffect(() => {
-        if (mess !== undefined && (!mess?._id || mess?._id.trim() === "")) {
-            navigate("/entry-options", { replace: true });
-        }
-    }, [mess, navigate]);
-
-    useEffect(() => {
         if (mess?._id) {
             getMessEntries(mess._id);
         }
     }, [mess?._id, getMessEntries]);
 
-    if (mess === undefined) {
+    if (isLoading || mess === undefined) {
         return (
             <div className="h-screen w-full flex justify-center items-center">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
         );
-      }
-    if (mess && (!mess._id || mess._id.trim() === "")) {
+    }
+
+    if (!mess?._id || mess._id.trim() === "") {
         return null;
     }
 
-    const {
-        totalMeals = 0,
-        totalDeposits = 0,
-        mealRate = 0,
-        summary = [],
-    } = entriesReport || {};
+    const { totalMeals = 0, totalDeposits = 0, mealRate = 0, summary = [] } = entriesReport || {};
 
     return (
         <div className="p-4 space-y-6">
@@ -93,9 +75,7 @@ const Home = () => {
 
             {/* Member Table */}
             <div className="bg-white text-black dark:bg-muted rounded-xl shadow overflow-hidden">
-                <h2 className="text-lg font-semibold px-4 py-3 border-b">
-                    Member Summary
-                </h2>
+                <h2 className="text-lg font-semibold px-4 py-3 border-b">Member Summary</h2>
 
                 {isLoading ? (
                     <div className="flex justify-center py-10">
@@ -117,11 +97,17 @@ const Home = () => {
                                 {summary.map((member) => (
                                     <TableRow key={member.userId}>
                                         <TableCell>
-                                            <img
-                                                src={member.image}
-                                                alt={member.name}
-                                                className="h-10 w-10 rounded-full object-cover"
-                                            />
+                                            {member.image ? (
+                                                <img
+                                                    src={member.image}
+                                                    alt={member.name}
+                                                    className="h-10 w-10 rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="h-10 w-10 flex items-center justify-center rounded-full bg-muted">
+                                                    <User className="w-5 h-5 text-muted-foreground" />
+                                                </div>
+                                            )}
                                         </TableCell>
                                         <TableCell className="font-medium">{member.name}</TableCell>
                                         <TableCell>৳ {member.totalDeposit}</TableCell>

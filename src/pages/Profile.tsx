@@ -22,7 +22,7 @@ const Profile = () => {
 
   const [phone, setPhone] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const imageFileRef = useRef<File | null>(null);
+  const imageBase64Ref = useRef<string | null>(null);
 
   useEffect(() => {
     if (!authUser) getProfile();
@@ -39,18 +39,24 @@ const Profile = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    imageFileRef.current = file;
-
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Please upload an image smaller than 5MB.");
+      return;
+    }
     const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file); // Only for preview
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      const base64Image = reader.result as string;
+      imageBase64Ref.current = base64Image;
+      setImagePreview(base64Image);
+    };
   };
 
   const handleUpdate = async () => {
     try {
       await updateProfile({
         phone,
-        image: imageFileRef.current || undefined,
+        image: imageBase64Ref.current || undefined,
       });
     } catch {
       toast.error("Profile update failed.");
@@ -71,7 +77,7 @@ const Profile = () => {
     <div className="min-h-screen bg-[#0F1729] text-white px-4 py-10">
       <div className="max-w-xl mx-auto bg-[#1A253A] rounded-2xl p-8 shadow-lg space-y-8">
         <div className="flex flex-col items-center gap-4">
-          <Avatar className="w-24 h-24 ring-2 ring-purple-600">
+          <Avatar className="w-24 h-24 ring-1 ring-purple-600">
             {imagePreview ? (
               <AvatarImage src={imagePreview} alt="User" />
             ) : (
@@ -84,8 +90,12 @@ const Profile = () => {
             type="file"
             accept="image/*"
             onChange={handleImageChange}
+            disabled={isUpdatingProfile}
             className="max-w-xs text-sm text-gray-200 file:bg-gray-500 file:px-1 file:text-white"
           />
+          <p className="text-sm text-muted-foreground">
+            {isUpdatingProfile ? "Uploading..." : "Click to upload image"}
+          </p>
         </div>
 
         <div className="space-y-2">

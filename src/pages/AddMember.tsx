@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useMessStore } from "@/store/useMessStore";
 import { Clipboard } from "@ark-ui/react/clipboard";
 import { ClipboardCopyIcon, CheckIcon, UserPlusIcon, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 export const AddMember = () => {
@@ -17,7 +17,7 @@ export const AddMember = () => {
     }
 
     const inviteCode = mess?.code || "";
-    const inviteLink = `${window.location.origin}/join-mess?code=${inviteCode}`;
+    // const inviteLink = `${window.location.origin}/join-mess?code=${inviteCode}`;
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br  px-4">
@@ -48,7 +48,7 @@ export const AddMember = () => {
                 </div>
 
                 {/* Invite Link */}
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                     <Label className="text-white/80">Invite Link</Label>
                     <Clipboard.Root value={inviteLink}>
                         <Clipboard.Control className="flex items-center gap-2 border border-white/30 bg-white/20 rounded px-3 py-2 text-white text-sm font-mono overflow-x-auto">
@@ -60,16 +60,16 @@ export const AddMember = () => {
                             </Clipboard.Trigger>
                         </Clipboard.Control>
                     </Clipboard.Root>
-                </div>
+                </div> */}
 
-                <Button
+                {/* <Button
                     variant="ghost"
                     className="w-full text-white mt-2 hover:bg-white/20 transition"
                     onClick={() => window.open(`/join-mess?code=${inviteCode}`, "_blank")}
                     disabled={!inviteCode}
                 >
                     Preview Join Page
-                </Button>
+                </Button> */}
             </div>
         </div>
     );

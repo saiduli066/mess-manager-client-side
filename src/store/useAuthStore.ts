@@ -105,29 +105,52 @@ export const useAuthStore = create<IAuthStore>((set) => ({
     }
   },
 
-  updateProfile: async (data: { phone: string; image?: File }) => {
+  // updateProfile: async (data: { phone: string; image?: File }) => {
+  //   set({ isUpdatingProfile: true });
+
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("phone", data.phone);
+
+  //     if (data.image) {
+  //       formData.append("image", data.image);
+  //     }
+
+  //     const res = await axiosInstance.put("/profile", formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+
+  //     const updatedUser = res.data.user;
+
+  //     set((state) => ({
+  //       authUser: state.authUser ? { ...state.authUser, ...updatedUser } : null,
+  //     }));
+
+  //     toast.success("Profile updated successfully");
+  //   } catch (err: any) {
+  //     console.error("Failed to update profile:", err);
+  //     toast.error(err.response?.data?.message || "Failed to update profile");
+  //   } finally {
+  //     set({ isUpdatingProfile: false });
+  //   }
+  // },
+  updateProfile: async (data: { phone: string; image?: string }) => {
     set({ isUpdatingProfile: true });
-
+  
     try {
-      const formData = new FormData();
-      formData.append("phone", data.phone);
-
-      if (data.image) {
-        formData.append("image", data.image);
-      }
-
-      const res = await axiosInstance.put("/profile", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const res = await axiosInstance.put("/profile", {
+        phone: data.phone,
+        image: data.image, 
       });
-
+  
       const updatedUser = res.data.user;
-
+  
       set((state) => ({
         authUser: state.authUser ? { ...state.authUser, ...updatedUser } : null,
       }));
-
+  
       toast.success("Profile updated successfully");
     } catch (err: any) {
       console.error("Failed to update profile:", err);
@@ -135,5 +158,6 @@ export const useAuthStore = create<IAuthStore>((set) => ({
     } finally {
       set({ isUpdatingProfile: false });
     }
-  },
+  }
+  
 }));

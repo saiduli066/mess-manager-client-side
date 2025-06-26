@@ -39,5 +39,5 @@ export interface IAuthStore {
   login: (data: TLoginData) => Promise<void>;
   logout: () => Promise<void>;
   getProfile: () => Promise<void>;
-  updateProfile: (data: { phone: string; image?: File }) => Promise<void>;
+  updateProfile: (data: { phone: string; image?: string }) => Promise<void>;
 }
