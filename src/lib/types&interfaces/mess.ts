@@ -77,4 +77,12 @@ export interface MessState {
     month?: string,
     year?: string
   ) => Promise<void>;
+  updateMessEntry: (
+    messId: string,
+    userId: string,
+    type: "meal" | "deposit",
+    amount: number,
+    month?: number,
+    year?: number
+  ) => Promise<void>;
 }

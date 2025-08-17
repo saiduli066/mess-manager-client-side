@@ -8,7 +8,10 @@ import {
     BarChart3,
     User,
     X,
-    Loader2
+    Loader2,
+    UserCog2,
+    Settings,
+    Settings2Icon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -21,7 +24,9 @@ const navItems = [
     { to: '/add-deposit', label: 'Add Deposit', icon: <PlusCircle className="h-5 w-5" /> },
     { to: '/records', label: 'Records', icon: <BarChart3 className="h-5 w-5" /> },
     { to: '/profile', label: 'My Profile', icon: <User className="h-5 w-5" /> },
-];
+    { to: '/admin-panel', label: 'Admin Panel', icon: <UserCog2 className="h-5 w-5" /> }, 
+    { to: '/settings', label: 'Settings', icon: <Settings2Icon className="h-5 w-5" /> }, 
+]; 
 type SidebarProps = {
     isOpen: boolean;
     onClose: () => void;

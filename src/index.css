@@ -1,6 +1,110 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* ------- */
+@keyframes confetti-burst {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(var(--tx), var(--ty)) rotate(360deg) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Wrapper for confetti and paper */
+.hover-confetti span,
+.hover-confetti div {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-block;
+  animation: confetti-burst 1.5s ease-out infinite;
+}
+
+/* Emojis */
+.hover-confetti span {
+  font-size: 1.5rem;
+}
+
+/* Paper strips */
+.hover-confetti div {
+  width: 6px;
+  height: 12px;
+  border-radius: 1px;
+}
+
+/* Random directions using CSS variables */
+.hover-confetti span:nth-child(1) {
+  --tx: -60px;
+  --ty: -80px;
+  animation-delay: 0s;
+}
+
+.hover-confetti span:nth-child(2) {
+  --tx: 80px;
+  --ty: -60px;
+  animation-delay: 0.2s;
+}
+
+.hover-confetti span:nth-child(3) {
+  --tx: -50px;
+  --ty: 70px;
+  animation-delay: 0.4s;
+}
+
+.hover-confetti span:nth-child(4) {
+  --tx: 70px;
+  --ty: 80px;
+  animation-delay: 0.6s;
+}
+
+.hover-confetti span:nth-child(5) {
+  --tx: 0px;
+  --ty: -90px;
+  animation-delay: 0.8s;
+}
+
+/* Paper strips directions */
+.hover-confetti div:nth-child(6) {
+  --tx: -40px;
+  --ty: -50px;
+  animation-delay: 0s;
+  background-color: #F87171;
+}
+
+.hover-confetti div:nth-child(7) {
+  --tx: 50px;
+  --ty: -40px;
+  animation-delay: 0.2s;
+  background-color: #60A5FA;
+}
+
+.hover-confetti div:nth-child(8) {
+  --tx: -30px;
+  --ty: 60px;
+  animation-delay: 0.4s;
+  background-color: #FBBF24;
+}
+
+.hover-confetti div:nth-child(9) {
+  --tx: 60px;
+  --ty: 50px;
+  animation-delay: 0.6s;
+  background-color: #34D399;
+}
+
+.hover-confetti div:nth-child(10) {
+  --tx: 0px;
+  --ty: 70px;
+  animation-delay: 0.8s;
+  background-color: #A78BFA;
+}
+
+/* ======== */
 .poppins-regular {
   font-family: "Poppins", sans-serif;
   font-weight: 400;

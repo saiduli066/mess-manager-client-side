@@ -22,13 +22,24 @@ const App = () => {
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#121b31]">
-        <DotLottieReact
-          src="https://lottie.host/26dfed0f-655e-4d48-bbd1-86cc7bdfd29c/Ia0U6ar4rU.lottie"
-          loop
-          autoplay
-        />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#334155] p-4">
+        <div className="relative">
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-full bg-purple-500/20 blur-3xl scale-150" />
+
+          {/* Lottie animation */}
+          <div className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-72 lg:h-72 xl:w-64 xl:h-64">
+            <DotLottieReact
+              src="https://lottie.host/26dfed0f-655e-4d48-bbd1-86cc7bdfd29c/Ia0U6ar4rU.lottie"
+              loop
+              autoplay
+              className="w-full h-full"
+            />
+          </div>
+        </div>
       </div>
+
+
     );
   }
 

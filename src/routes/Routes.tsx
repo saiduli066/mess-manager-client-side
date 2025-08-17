@@ -13,6 +13,8 @@ import AddEntry from "@/pages/AddEntry";
 import { AddMember } from "@/pages/AddMember";
 import Main from "@/components/Main";
 import Records from "@/pages/Records";
+import AdminPanel from "@/pages/AdminPanel";
+import SettingsPage from "@/pages/settingsPage";
 
 export const router = createBrowserRouter([
   {
@@ -97,6 +99,20 @@ export const router = createBrowserRouter([
         element: <ProtectRoutes>
 
           <Records />
+        </ProtectRoutes>,
+      },
+      {
+        path: "/admin-panel",
+        element: <ProtectRoutes>
+
+          <AdminPanel />
+        </ProtectRoutes>,
+      },
+      {
+        path: "/settings",
+        element: <ProtectRoutes>
+
+          <SettingsPage />
         </ProtectRoutes>,
       },
 
