@@ -15,6 +15,14 @@ import Main from "@/components/Main";
 import Records from "@/pages/Records";
 import AdminPanel from "@/pages/AdminPanel";
 import SettingsPage from "@/pages/settingsPage";
+import MyMess from "@/pages/MyMess";
+import BazarNotes from "@/pages/BazarNotes";
+import MealEntry from "@/pages/MealEntry";
+import UserMealStatistics from "@/pages/UserMealStatistics";
+import Notifications from "@/pages/Notifications";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
+import Bills from "@/pages/Bills";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +59,14 @@ export const router = createBrowserRouter([
         element: <SignUp />,
       },
       {
+        path: "/forgot-password",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "/reset-password/:token",
+        element: <ResetPassword />,
+      },
+      {
         path: "/create-mess",
         element: <ProtectRoutes>
           <CreateMess />
@@ -83,11 +99,23 @@ export const router = createBrowserRouter([
         </ProtectRoutes>,
       },
       {
-        path: "/add-meal",
+        path: "/turn-meal-on/off",
         element: <ProtectRoutes>
-          <AddEntry />
+          <MealEntry />
         </ProtectRoutes>,
       },
+      {
+        path: "/my-meal-stat",
+        element: <ProtectRoutes>
+          <UserMealStatistics />
+        </ProtectRoutes>,
+      },
+      // {
+      //   path: "/add-meal",
+      //   element: <ProtectRoutes>
+      //     <AddEntry />
+      //   </ProtectRoutes>,
+      // },
       {
         path: "/add-member",
         element: <ProtectRoutes>
@@ -102,6 +130,13 @@ export const router = createBrowserRouter([
         </ProtectRoutes>,
       },
       {
+        path: "/notification",
+        element: <ProtectRoutes>
+
+          <Notifications />
+        </ProtectRoutes>,
+      },
+      {
         path: "/admin-panel",
         element: <ProtectRoutes>
 
@@ -113,6 +148,27 @@ export const router = createBrowserRouter([
         element: <ProtectRoutes>
 
           <SettingsPage />
+        </ProtectRoutes>,
+      },
+      {
+        path: "/my-mess",
+        element: <ProtectRoutes>
+
+          <MyMess />
+        </ProtectRoutes>,
+      },
+      {
+        path: "/bazar-notes",
+        element: <ProtectRoutes>
+
+          <BazarNotes />
+        </ProtectRoutes>,
+      },
+      {
+        path: "/bills",
+        element: <ProtectRoutes>
+
+          <Bills />
         </ProtectRoutes>,
       },
 

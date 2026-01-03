@@ -1,15 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// stores/useAuthStore.ts
 import { create } from "zustand";
-import { axiosInstance } from "../lib/axios";
+import { axiosInstance } from "@/lib/axios";
 import { toast } from "sonner";
-import type { IAuthStore, IAuthUser, TLoginData, TSignupData } from "@/lib/types&interfaces/auth";
+import { useMessStore } from "./useMessStore";
+import type {
+  IAuthStore,
+  IAuthUser,
+  TLoginData,
+  TSignupData,
+} from "@/lib/types&interfaces/auth";
 
 export const useAuthStore = create<IAuthStore>((set) => ({
   authUser: null,
   isSigningUp: false,
   isLoggingIn: false,
-  isCheckingAuth: true,
   isLoggingOut: false,
+  isCheckingAuth: true,
   isFetchingProfile: false,
   isUpdatingProfile: false,
 
@@ -18,9 +26,7 @@ export const useAuthStore = create<IAuthStore>((set) => ({
       set({ isCheckingAuth: true });
       const res = await axiosInstance.get<IAuthUser>("/auth/check");
       set({ authUser: res.data });
-      // console.log("Auth user in authCheck:",  res.data);
     } catch (error) {
-      console.log("Auth Check Error:", error);
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -32,6 +38,8 @@ export const useAuthStore = create<IAuthStore>((set) => ({
     try {
       const res = await axiosInstance.post<IAuthUser>("/auth/signup", data);
       set({ authUser: res.data });
+      // Mark user as having visited
+      localStorage.setItem("hasVisited", "true");
       toast.success("Account created successfully");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Signup failed");
@@ -45,6 +53,8 @@ export const useAuthStore = create<IAuthStore>((set) => ({
     try {
       const res = await axiosInstance.post<IAuthUser>("/auth/login", data);
       set({ authUser: res.data });
+      // Mark user as having visited
+      localStorage.setItem("hasVisited", "true");
       toast.success("Logged in successfully");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Login failed");
@@ -56,6 +66,7 @@ export const useAuthStore = create<IAuthStore>((set) => ({
   logout: async () => {
     set({ isLoggingOut: true });
     try {
+      // Keep hasVisited flag so user goes to login next time
       await axiosInstance.post("/auth/logout");
       set({ authUser: null });
       toast.success("Logged out successfully");
@@ -68,96 +79,55 @@ export const useAuthStore = create<IAuthStore>((set) => ({
 
   getProfile: async () => {
     set({ isFetchingProfile: true });
-
     try {
       const res = await axiosInstance.get("/profile");
-
-      const {
-        _id,
-        name,
-        email,
-        phone,
-        image,
-        messName,
-        role,
-        createdAt,
-        updatedAt,
-      } = res.data;
-
+      const userData = res.data;
       set({
         authUser: {
-          _id,
-          name,
-          email,
-          phone,
-          image,
-          messName,
-          role,
-          createdAt,
-          updatedAt,
+          _id: userData._id,
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone,
+          image: userData.image,
+          messName: userData.messId?.name || "",
+          role: userData.role,
+          createdAt: userData.createdAt,
+          updatedAt: userData.updatedAt,
+          messId: userData.messId?._id,
+          mealCounts: userData.mealCounts,
+          mealSwitches: userData.mealSwitches,
         },
       });
     } catch (err: any) {
-      console.error("Failed to fetch profile:", err);
       toast.error(err.response?.data?.message || "Failed to load profile");
     } finally {
       set({ isFetchingProfile: false });
     }
   },
 
-  // updateProfile: async (data: { phone: string; image?: File }) => {
-  //   set({ isUpdatingProfile: true });
-
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append("phone", data.phone);
-
-  //     if (data.image) {
-  //       formData.append("image", data.image);
-  //     }
-
-  //     const res = await axiosInstance.put("/profile", formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //     });
-
-  //     const updatedUser = res.data.user;
-
-  //     set((state) => ({
-  //       authUser: state.authUser ? { ...state.authUser, ...updatedUser } : null,
-  //     }));
-
-  //     toast.success("Profile updated successfully");
-  //   } catch (err: any) {
-  //     console.error("Failed to update profile:", err);
-  //     toast.error(err.response?.data?.message || "Failed to update profile");
-  //   } finally {
-  //     set({ isUpdatingProfile: false });
-  //   }
-  // },
-  updateProfile: async (data: { phone: string; image?: string }) => {
+  updateProfile: async (data: {
+    name?: string;
+    phone?: string;
+    image?: string;
+  }) => {
     set({ isUpdatingProfile: true });
-  
     try {
-      const res = await axiosInstance.put("/profile", {
-        phone: data.phone,
-        image: data.image, 
-      });
-  
+      const res = await axiosInstance.put("/profile", data);
       const updatedUser = res.data.user;
-  
       set((state) => ({
         authUser: state.authUser ? { ...state.authUser, ...updatedUser } : null,
       }));
-  
       toast.success("Profile updated successfully");
+
+      // Refresh members list to show updated name and phone
+      const messStore = useMessStore.getState();
+      if (messStore.mess?._id) {
+        await messStore.getMessMembers();
+      }
     } catch (err: any) {
-      console.error("Failed to update profile:", err);
       toast.error(err.response?.data?.message || "Failed to update profile");
     } finally {
       set({ isUpdatingProfile: false });
     }
-  }
-  
+  },
 }));

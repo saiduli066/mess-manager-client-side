@@ -3,17 +3,20 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, User2Icon } from "lucide-react";
+import { User2Icon } from "lucide-react";
 import { useMessStore } from "@/store/useMessStore";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/useAuthStore";
-import type { EntryType, MessEntryInput } from "@/lib/types&interfaces/mess";
+import type { MessEntryInput } from "@/lib/types&interfaces/mess";
+type EntryType = "deposit" | "meal";
 
 const AddEntry = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMeal = location.pathname.includes("add-meal");
+  // const entryType: EntryType = isMeal ? "meal" : "deposit";
   const entryType: EntryType = isMeal ? "meal" : "deposit";
+
 
   const {
     mess,
@@ -49,10 +52,10 @@ const AddEntry = () => {
   //  Show if no mess is available
   if (!mess?._id || mess._id.trim() === "") {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center space-y-4">
+      <div className="h-screen w-full flex flex-col items-center justify-center space-y-4 bg-[#0F1729]">
         <p className="text-lg text-amber-400">⚠️ No mess found.</p>
         <Button
-          className="bg-indigo-700 hover:bg-indigo-900"
+          className="bg-[#7E22CE] hover:bg-[#6B1AB5]"
           onClick={() => navigate("/entry-options")}
         >
           Go to Create/Join A Mess
@@ -64,10 +67,39 @@ const AddEntry = () => {
   //  Restrict regular members
   if (authUser?.role === "member") {
     return (
-      <div className="flex justify-center items-center min-h-[250px] w-full px-2">
-        <span className="text-lg md:text-xl font-semibold text-yellow-600 text-center">
-          Only Mess Admin can add {entryType} entries.
-        </span>
+      <div className="min-h-screen flex items-center justify-center p-4"
+        style={{
+          background: "linear-gradient(to bottom, #0F1729, #1A2332)",
+        }}
+      >
+        <Card className="w-full max-w-md mx-auto shadow-2xl border-[#7E22CE]/30 rounded-2xl overflow-hidden bg-[#1A2332]"
+          style={{
+            borderColor: "rgba(126, 34, 206, 0.3)",
+          }}
+        >
+          <div className="p-6 border-b border-[#7E22CE]/20">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center bg-red-500/10 backdrop-blur-sm border-2 border-red-500/30">
+              <User2Icon className="w-10 h-10 text-red-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-center text-red-400">
+              Access Restricted
+            </h3>
+          </div>
+          <CardContent className="p-8 text-center space-y-4">
+            <p className="text-gray-300 text-lg leading-relaxed">
+              Only <span className="text-[#9D47DE] font-semibold">Mess Admin</span> can add {entryType} entries.
+            </p>
+            <p className="text-gray-400 text-sm">
+              Contact your mess admin if you need to make {entryType} updates.
+            </p>
+            <Button
+              onClick={() => window.location.href = "/home"}
+              className="w-full mt-6 bg-gradient-to-r from-[#7E22CE] to-[#9D47DE] hover:from-[#6B1AB5] hover:to-[#7E22CE] text-white font-medium py-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-[#7E22CE]/50"
+            >
+              Return to Home
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -75,8 +107,8 @@ const AddEntry = () => {
   //Admin but not part of any mess
   if (!members?.length) {
     return (
-      <div className="flex justify-center items-center min-h-[250px] w-full px-4">
-        <span className="text-lg md:text-xl font-semibold text-red-600 text-center">
+      <div className="flex justify-center items-center min-h-[250px] w-full px-4 bg-[#0F1729]">
+        <span className="text-lg md:text-xl font-semibold text-red-400 text-center">
           ⚠️ Join a mess first to add {entryType} entries.
         </span>
       </div>
@@ -92,12 +124,12 @@ const AddEntry = () => {
   };
 
   const handleSubmit = async () => {
-    await addMessEntry(entryType, entries);
+    await addMessEntry(entries);
     setEntries((prev) => prev.map((entry) => ({ ...entry, amount: 0 })));
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto mt-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto mt-6 min-h-screen bg-[#0F1729]">
       <h2 className="text-2xl font-semibold mb-6 text-center text-white">
         {isMeal ? "Add Meal Count" : "Add Deposit"}
       </h2>
@@ -106,7 +138,7 @@ const AddEntry = () => {
         {members.map((member) => (
           <Card
             key={member._id}
-            className="w-[70%] md:w-[60%] mx-auto bg-gradient-to-tr from-purple-900/80 via-gray-900/70 to-gray-800/80 border border-purple-700 shadow-xl rounded-xl hover:scale-[1.02] hover:shadow-2xl transition-transform"
+            className="w-[70%] md:w-[60%] mx-auto bg-[#1A2332] border border-[#7E22CE]/30 shadow-xl rounded-xl hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#7E22CE]/20 transition-transform"
           >
             <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-6 p-5">
               <div className="flex items-center gap-4">
@@ -114,11 +146,11 @@ const AddEntry = () => {
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-purple-600 shadow"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-[#7E22CE] shadow"
                   />
                 ) : (
                   <Avatar>
-                    <AvatarFallback className="bg-purple-800 text-purple-200 w-full h-full flex justify-center items-center">
+                    <AvatarFallback className="bg-gradient-to-br from-[#7E22CE] to-[#9D47DE] text-white w-full h-full flex justify-center items-center">
                       <User2Icon className="w-8 h-8" />
                     </AvatarFallback>
                   </Avatar>
@@ -137,7 +169,7 @@ const AddEntry = () => {
                 onChange={(e) =>
                   handleAmountChange(member._id, Number(e.target.value))
                 }
-                className="w-full sm:w-36 bg-gray-800/80 border border-purple-700 text-white placeholder:text-purple-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-400"
+                className="w-full sm:w-36 bg-[#0F1729] border border-[#7E22CE]/30 text-white placeholder:text-gray-400 focus:border-[#7E22CE] focus:ring-2 focus:ring-[#7E22CE]/50"
                 placeholder={`Enter ${isMeal ? "meal count" : "amount"}`}
               />
             </CardContent>
@@ -149,11 +181,11 @@ const AddEntry = () => {
         <Button
           onClick={handleSubmit}
           disabled={isLoading}
-          className="w-full sm:w-auto bg-purple-700 hover:bg-purple-800 mb-4"
+          className="w-full sm:w-auto bg-[#7E22CE] hover:bg-[#6B1AB5] mb-4"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
               Loading...
             </>
           ) : (

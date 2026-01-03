@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
+// pages/Records.tsx
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -10,7 +9,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Loader2, User, Download } from "lucide-react";
+import { User, Download } from "lucide-react";
 import { useMessStore } from "@/store/useMessStore";
 import { Label } from "@/components/ui/label";
 import {
@@ -22,17 +21,13 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+    createUnMessPDF,
+    getUnMessTableStyles,
+    applyWatermarkToAllPages,
+    addSectionHeader,
+} from "@/lib/pdfUtils";
 
 const getMonthOptions = () =>
     Array.from({ length: 12 }, (_, i) => ({
@@ -48,66 +43,6 @@ const getYearOptions = () => {
     }));
 };
 
-interface UpdateModalProps {
-    open: boolean;
-    onClose: () => void;
-    onSubmit: (amount: number) => void;
-    type: "deposit" | "meal";
-    currentAmount: number;
-    memberName: string;
-}
-
-const UpdateModal = ({
-    open,
-    onClose,
-    onSubmit,
-    type,
-    currentAmount,
-    memberName,
-}: UpdateModalProps) => {
-    const [amount, setAmount] = useState<number>(currentAmount);
-
-    useEffect(() => {
-        if (open) setAmount(currentAmount);
-    }, [currentAmount, open]);
-
-    const handleSubmit = () => {
-        if (isNaN(amount)) {
-            alert("Please enter a valid number.");
-            return;
-        }
-        onSubmit(amount);
-        onClose();
-    };
-
-    return (
-        <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>
-                        Update {type === "deposit" ? "Deposit" : "Meal"} for {memberName}
-                    </DialogTitle>
-                </DialogHeader>
-                <div className="flex flex-col space-y-4">
-                    <Label>{type === "deposit" ? "New Deposit Amount (৳)" : "New Meal Count"}</Label>
-                    <input
-                        type="number"
-                        className="border rounded px-3 py-2"
-                        value={amount}
-                        onChange={(e) => setAmount(Number(e.target.value))}
-                    />
-                </div>
-                <DialogFooter className="mt-4 flex justify-end space-x-2">
-                    <Button variant="outline" onClick={onClose}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSubmit}>Submit</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-};
-
 const Records = () => {
     const navigate = useNavigate();
     const {
@@ -115,7 +50,6 @@ const Records = () => {
         entriesReport,
         getMessInfo,
         getMessEntries,
-        updateMessEntry,
         isLoading,
     } = useMessStore();
 
@@ -123,15 +57,10 @@ const Records = () => {
         String(new Date().getMonth() + 1).padStart(2, "0")
     );
     const [year, setYear] = useState(String(new Date().getFullYear()));
+    const [generating, setGenerating] = useState(false);
 
     const { summary = [], totalMeals = 0, totalDeposits = 0, mealRate = 0 } =
         entriesReport || {};
-
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalType, setModalType] = useState<"deposit" | "meal">("deposit");
-    const [modalMemberName, setModalMemberName] = useState("");
-    const [modalCurrentAmount, setModalCurrentAmount] = useState(0);
-    const [modalUserId, setModalUserId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!mess) getMessInfo();
@@ -143,204 +72,136 @@ const Records = () => {
         }
     }, [mess?._id, month, year, getMessEntries]);
 
-    const openUpdateModal = (
-        memberName: string,
-        userId: string,
-        type: "deposit" | "meal",
-        currentAmount: number,
-    ) => {
-        setModalMemberName(memberName);
-        setModalUserId(userId);
-        setModalType(type);
-        setModalCurrentAmount(currentAmount);
-        setModalOpen(true);
-    };
-
-    const handleModalSubmit = async (amount: number) => {
-        setModalOpen(false);
-        if (!modalUserId || !mess?._id) {
-            toast("Missing required data for update.");
-            return;
-        }
-
-        try {
-            await updateMessEntry(
-                mess._id,
-                modalUserId,
-                modalType,
-                amount,
-                parseInt(month),
-                parseInt(year)
-            );
-
-            await getMessEntries(mess._id, month, year);
-        } catch (error) {
-            console.error(error);
-            toast("Error updating entry.");
-        }
-    };
-
     const generatePDF = () => {
-        const doc = new jsPDF();
-        const monthName = getMonthOptions()[parseInt(month) - 1].label;
-        const date = new Date().toLocaleDateString();
+        setGenerating(true);
 
-        // Title
-        doc.setFontSize(20);
-        doc.setTextColor(33, 33, 33); 
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Mess Report - ${monthName} ${year}`, 105, 20, { align: 'center' });
+        // Use setTimeout to allow React to update the UI with spinner
+        setTimeout(() => {
+            try {
+                const monthName = getMonthOptions()[parseInt(month) - 1].label;
 
-        // Subtitle
-        doc.setFontSize(11);
-        doc.setTextColor(100, 100, 100);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Generated on: ${date}`, 105, 27, { align: 'center' });
+                // Create PDF with UnMess branding
+                const doc = createUnMessPDF({
+                    title: `MEAL REPORT`,
+                    subtitle: `Report for ${monthName} ${year}`,
+                });
 
-        // Summary Section
-        doc.setFontSize(15);
-        doc.setTextColor(44, 62, 80); 
-        doc.setFont('helvetica', 'bold');
-        doc.text("Summary", 14, 40);
+                const tableStyles = getUnMessTableStyles();
+                let startY = 45;
 
-        // Summary Table
-        autoTable(doc, {
-            startY: 45,
-            body: [
-                ['Total Meals', totalMeals],
-                ['Total Deposits', `TK ${totalDeposits}`],
-                ['Total Meals Cost', `TK ${(totalMeals * mealRate).toFixed(2)}`],
-                ['Meal Rate', `TK ${mealRate.toFixed(2)}`],
-            ],
-            theme: 'grid',
-            headStyles: {
-                fillColor: [52, 73, 94], 
-                textColor: 255,
-                fontStyle: 'bold',
-                fontSize: 12
-            },
-            bodyStyles: {
-                textColor: [50, 50, 50], 
-                fontSize: 11,
-                cellPadding: 5
-            },
-            margin: { top: 40 },
-            styles: {
-                halign: 'center'
+                // Financial Summary Section
+                addSectionHeader(doc, "FINANCIAL SUMMARY", startY);
+
+                // Summary Table
+                autoTable(doc, {
+                    startY: startY + 6,
+                    body: [
+                        ["Total Meals", totalMeals.toString()],
+                        ["Total Deposits", `tk ${totalDeposits.toFixed(2)}`],
+                        ["Total Meals Cost", `tk ${(totalMeals * mealRate).toFixed(2)}`],
+                        ["Meal Rate", `tk ${mealRate.toFixed(2)}`],
+                    ],
+                    ...tableStyles,
+                    columnStyles: {
+                        0: { fontStyle: "bold", cellWidth: 90, halign: "left" },
+                        1: { halign: "right", cellWidth: 70, fontStyle: "bold" },
+                    },
+                });
+
+                // Member Summary Section
+                const afterSummary = (doc as any).lastAutoTable.finalY + 15;
+                addSectionHeader(doc, "MEMBER SUMMARY", afterSummary);
+
+                // Member Table
+                autoTable(doc, {
+                    startY: afterSummary + 8,
+                    head: [["Name", "Deposit (tk)", "Meals", "Balance (tk)", "Status"]],
+                    body: summary.map((member) => [
+                        member.name,
+                        member.totalDeposit.toFixed(2),
+                        member.totalMeal.toString(),
+                        member.balance.toFixed(2),
+                        member.balance < 0 ? "Due" : "Advance",
+                    ]),
+                    ...tableStyles,
+                    columnStyles: {
+                        0: { fontStyle: "bold" },
+                        1: { halign: "right" },
+                        2: { halign: "center" },
+                        3: { halign: "right" },
+                        4: { halign: "center" },
+                    },
+                    didParseCell: (data) => {
+                        // Color the balance column based on status
+                        if (data.column.index === 3 && data.section === "body") {
+                            const balance = parseFloat(data.cell.raw as string);
+                            if (balance < 0) {
+                                data.cell.styles.textColor = [220, 38, 38]; // Red for due
+                                data.cell.styles.fontStyle = "bold";
+                            } else {
+                                data.cell.styles.textColor = [22, 163, 74]; // Green for advance
+                                data.cell.styles.fontStyle = "bold";
+                            }
+                        }
+                    },
+                });
+
+                // Apply watermark to all pages and add footers
+                applyWatermarkToAllPages(doc);
+
+                // Save the PDF
+                doc.save(`UnMess_Report_${monthName}_${year}.pdf`);
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+            } finally {
+                setGenerating(false);
             }
-        });
-
-        // Member Summary Section
-        doc.setFontSize(15);
-        doc.setTextColor(44, 62, 80);
-        doc.text("Member Summary", 14, (doc as any).lastAutoTable.finalY + 20);
-
-        // Member Table
-        autoTable(doc, {
-            startY: (doc as any).lastAutoTable.finalY + 25,
-            head: [['Name', 'Deposit (TK)', 'Meals', 'Balance (TK)', 'Status']],
-            body: summary.map(member => [
-                member.name,
-                member.totalDeposit,
-                member.totalMeal,
-                member.balance.toFixed(2),
-                member.balance < 0 ? 'Due' : 'Advance'
-            ]),
-            theme: 'grid',
-            headStyles: {
-                fillColor: [52, 73, 94], 
-                textColor: 255,
-                fontStyle: 'bold',
-                fontSize: 12
-            },
-            bodyStyles: {
-                textColor: [50, 50, 50], 
-                fontSize: 11
-            },
-            columnStyles: {
-                0: { fontStyle: 'bold' }, 
-                1: { cellWidth: 30, halign: 'right' },
-                2: { cellWidth: 20, halign: 'center' },
-                3: { cellWidth: 30, halign: 'right' },
-                4: { cellWidth: 25, halign: 'center' }
-            },
-            didParseCell: (data) => {
-                if (data.column.index === 4) {
-                    data.cell.styles.textColor = [255, 255, 255]; 
-                    if (data.cell.raw === 'Due') {
-                        data.cell.styles.fillColor = [231, 76, 60]; 
-                    } else {
-                        data.cell.styles.fillColor = [39, 174, 96]; 
-                    }
-                }
-            }
-        });
-
-        // Save the PDF
-        doc.save(`mess_report_${month}_${year}.pdf`);
+        }, 100);
     };
 
-    //loading
     if (!mess?._id || mess._id.trim() === "") {
-        return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#334155] p-4">
-            <div className="relative">
-                <div className="absolute inset-0 rounded-full bg-purple-500/20 blur-3xl scale-150" />
-                <div className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-72 lg:h-72 xl:w-64 xl:h-64">
-                    <DotLottieReact
-                        src="https://lottie.host/26dfed0f-655e-4d48-bbd1-86cc7bdfd29c/Ia0U6ar4rU.lottie"
-                        loop
-                        autoplay
-                        className="w-full h-full"
-                    />
-                </div>
+        return (
+            <div className="h-screen w-full flex flex-col items-center justify-center space-y-4 bg-[#0F1729]">
+                <p className="text-lg text-amber-400">⚠️ No mess found.</p>
+                <Button
+                    className="bg-[#7E22CE] hover:bg-[#6B1AB5]"
+                    onClick={() => navigate("/entry-options")}
+                >
+                    Go to Create/Join A Mess
+                </Button>
             </div>
-        </div>
+        );
     }
 
-    if (!mess?._id || mess._id.trim() === "") {
-            return (
-                <div className="h-screen w-full flex flex-col items-center justify-center space-y-4">
-                    <p className="text-lg text-amber-400">⚠️ No mess found.</p>
-                    <Button
-                        className="bg-indigo-700 hover:bg-indigo-900"
-                        onClick={() => navigate("/entry-options")}
-                    >
-                        Go to Create/Join A Mess
-                    </Button>
-                </div>
-            );
-        }
-    
-
     return (
-        <div className="p-4 space-y-6">
+        <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 min-h-screen bg-[#0F1729]">
             {/* Filters and Download Button */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex flex-row gap-3 md:gap-4">
-                    <div className="flex flex-col space-y-1">
-                        <Label>Month</Label>
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <div className="flex flex-col space-y-1 flex-1 sm:flex-initial">
+                        <Label className="text-gray-300 text-sm">Month</Label>
                         <Select value={month} onValueChange={setMonth}>
-                            <SelectTrigger className="w-40">
+                            <SelectTrigger className="w-full sm:w-40 bg-[#1A2332] border-[#7E22CE]/30 text-white">
                                 <SelectValue placeholder="Select month" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-[#1A2332] border-[#7E22CE]/30">
                                 {getMonthOptions().map((m) => (
-                                    <SelectItem key={m.value} value={m.value}>
+                                    <SelectItem key={m.value} value={m.value} className="text-white">
                                         {m.label}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="flex flex-col space-y-1">
-                        <Label>Year</Label>
+                    <div className="flex flex-col space-y-1 flex-1 sm:flex-initial">
+                        <Label className="text-gray-300 text-sm">Year</Label>
                         <Select value={year} onValueChange={setYear}>
-                            <SelectTrigger className="w-40">
+                            <SelectTrigger className="w-full sm:w-40 bg-[#1A2332] border-[#7E22CE]/30 text-white">
                                 <SelectValue placeholder="Select year" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-[#1A2332] border-[#7E22CE]/30">
                                 {getYearOptions().map((y) => (
-                                    <SelectItem key={y.value} value={y.value}>
+                                    <SelectItem key={y.value} value={y.value} className="text-white">
                                         {y.label}
                                     </SelectItem>
                                 ))}
@@ -351,140 +212,111 @@ const Records = () => {
 
                 <Button
                     onClick={generatePDF}
-                    className="md:mt-0 self-start md:self-center text-black"
+                    className="w-full sm:w-auto whitespace-nowrap bg-[#7E22CE] hover:bg-[#6B1AB5] text-white border-[#7E22CE]/30"
                     variant="outline"
+                    disabled={generating}
                 >
-                    <Download className="h-4 w-4  " />
-                    Download Report
+                    {generating ? (
+                        <>
+                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                            Generating...
+                        </>
+                    ) : (
+                        <>
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Report
+                        </>
+                    )}
                 </Button>
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <Card>
-                    <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">Total Meals</p>
-                        <p className="text-lg font-semibold">{totalMeals}</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <Card className="bg-[#1A2332] border-[#7E22CE]/30">
+                    <CardContent className="p-3 sm:p-4">
+                        <p className="text-xs sm:text-sm text-gray-400 truncate">Total Meals</p>
+                        <p className="text-base sm:text-lg font-semibold text-white">{totalMeals}</p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">Total Deposits (৳)</p>
-                        <p className="text-lg font-semibold">৳ {totalDeposits}</p>
+                <Card className="bg-[#1A2332] border-[#7E22CE]/30">
+                    <CardContent className="p-3 sm:p-4">
+                        <p className="text-xs sm:text-sm text-gray-400 truncate">Total Deposits (৳)</p>
+                        <p className="text-base sm:text-lg font-semibold text-white">৳ {totalDeposits}</p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">Total Meals Cost (৳)</p>
-                        <p className="text-lg font-semibold">৳ {(totalMeals * mealRate).toFixed(2)}</p>
+                <Card className="bg-[#1A2332] border-[#7E22CE]/30">
+                    <CardContent className="p-3 sm:p-4">
+                        <p className="text-xs sm:text-sm text-gray-400 truncate">Total Meals Cost (৳)</p>
+                        <p className="text-base sm:text-lg font-semibold text-white">৳ {(totalMeals * mealRate).toFixed(2)}</p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">Meal Rate (৳)</p>
-                        <p className="text-lg font-semibold">৳ {mealRate.toFixed(2)}</p>
+                <Card className="bg-[#1A2332] border-[#7E22CE]/30">
+                    <CardContent className="p-3 sm:p-4">
+                        <p className="text-xs sm:text-sm text-gray-400 truncate">Meal Rate (৳)</p>
+                        <p className="text-base sm:text-lg font-semibold text-white">৳ {mealRate.toFixed(2)}</p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Member Summary Table */}
-            <div className="bg-white text-black dark:bg-muted rounded-xl shadow overflow-x-auto">
-                <h2 className="text-lg font-semibold px-4 py-3 border-b">
+            <div className="bg-[#1A2332] border border-[#7E22CE]/30 rounded-xl shadow overflow-hidden">
+                <h2 className="text-base sm:text-lg font-semibold px-3 sm:px-4 py-3 border-b border-[#7E22CE]/30 text-white">
                     Member Summary ({month}/{year})
                 </h2>
 
                 {isLoading ? (
-                    <div className="flex justify-center py-10">
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <div className="flex flex-col justify-center items-center py-10">
+                        <div className="inline-block animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#7E22CE]"></div>
+                        <p className="mt-4 text-gray-400 text-sm">Loading records...</p>
                     </div>
                 ) : (
-                    <Table>
-                        <TableHeader className="bg-gray-100 dark:bg-zinc-800">
-                            <TableRow>
-                                <TableHead className="min-w-[80px]">Image</TableHead>
-                                <TableHead className="min-w-[150px]">Name</TableHead>
-                                <TableHead className="min-w-[180px]">Total Deposit (৳)</TableHead>
-                                <TableHead className="min-w-[180px]">Total Meals</TableHead>
-                                <TableHead className="min-w-[130px]">Balance (৳)</TableHead>
-                                <TableHead className="min-w-[180px]">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {summary.map((member) => (
-                                <TableRow key={member.userId}>
-                                    <TableCell>
-                                        {member.image ? (
-                                            <img
-                                                src={member.image}
-                                                alt={member.name}
-                                                className="h-10 w-10 rounded-full object-cover ring-2 ring-offset-1 ring-gray-200 dark:ring-gray-700"
-                                            />
-                                        ) : (
-                                            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-muted">
-                                                <User className="w-5 h-5 text-muted-foreground" />
-                                            </div>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="font-medium">{member.name}</TableCell>
-                                    <TableCell className="text-gray-700 dark:text-gray-300">
-                                        ৳ {member.totalDeposit}
-                                    </TableCell>
-                                    <TableCell className="text-gray-700 dark:text-gray-300">
-                                        {member.totalMeal}
-                                    </TableCell>
-                                    <TableCell
-                                        className={`font-semibold ${member.balance < 0 ? "text-red-600" : "text-green-600"
-                                            }`}
-                                    >
-                                        ৳ {member.balance.toFixed(2)}
-                                    </TableCell>
-                                    <TableCell className="space-x-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="hover:bg-primary hover:text-white transition-colors"
-                                            onClick={() =>
-                                                openUpdateModal(
-                                                    member.name,
-                                                    member.userId,
-                                                    "deposit",
-                                                    member.totalDeposit
-                                                )
-                                            }
-                                        >
-                                            Update Deposit
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="hover:bg-primary hover:text-white transition-colors"
-                                            onClick={() =>
-                                                openUpdateModal(
-                                                    member.name,
-                                                    member.userId,
-                                                    "meal",
-                                                    member.totalMeal
-                                                )
-                                            }
-                                        >
-                                            Update Meal
-                                        </Button>
-                                    </TableCell>
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader className="bg-[#0F1729]">
+                                <TableRow className="border-b border-[#7E22CE]/30 hover:bg-[#0F1729]">
+                                    <TableHead className="min-w-[80px] text-gray-300">Image</TableHead>
+                                    <TableHead className="min-w-[150px] text-gray-300">Name</TableHead>
+                                    <TableHead className="min-w-[180px] text-gray-300">Total Deposit (৳)</TableHead>
+                                    <TableHead className="min-w-[180px] text-gray-300">Total Meals</TableHead>
+                                    <TableHead className="min-w-[130px] text-gray-300">Balance (৳)</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {summary.map((member) => (
+                                    <TableRow key={member.userId} className="border-b border-[#7E22CE]/10 hover:bg-[#7E22CE]/10">
+                                        <TableCell>
+                                            {member.image ? (
+                                                <img
+                                                    src={member.image}
+                                                    alt={member.name}
+                                                    className="h-10 w-10 rounded-full object-cover ring-2 ring-offset-1 ring-[#7E22CE]/30"
+                                                />
+                                            ) : (
+                                                <div className="h-10 w-10 flex items-center justify-center rounded-full bg-gradient-to-br from-[#7E22CE] to-[#9D47DE]">
+                                                    <User className="w-5 h-5 text-white" />
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="font-medium text-white">{member.name}</TableCell>
+                                        <TableCell className="text-gray-300">
+                                            ৳ {member.totalDeposit}
+                                        </TableCell>
+                                        <TableCell className="text-gray-300">
+                                            {member.totalMeal}
+                                        </TableCell>
+                                        <TableCell
+                                            className={`font-semibold ${member.balance < 0 ? "text-red-400" : "text-green-400"
+                                                }`}
+                                        >
+                                            ৳ {member.balance.toFixed(2)}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
                 )}
             </div>
-
-            <UpdateModal
-                open={modalOpen}
-                onClose={() => setModalOpen(false)}
-                onSubmit={handleModalSubmit}
-                type={modalType}
-                currentAmount={modalCurrentAmount}
-                memberName={modalMemberName}
-            />
         </div>
     );
 };

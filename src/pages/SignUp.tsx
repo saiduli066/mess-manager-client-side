@@ -81,8 +81,8 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#1f0036] via-[#1F3B45] to-[#3c006f] px-4">
-      <div className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl text-white w-full max-w-md p-8 rounded-2xl">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#0F1729] px-4">
+      <div className="bg-[#1A2332] border border-[#7E22CE]/30 shadow-2xl text-white w-full max-w-md p-8 rounded-2xl">
         <h2 className="text-2xl font-bold mb-1 text-center">Create Account</h2>
         <p className="text-sm text-white/70 text-center mb-6">Sign up to get started</p>
 
@@ -95,7 +95,7 @@ const SignUp = () => {
               required
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-md bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 rounded-md bg-[#0F1729] text-white placeholder-gray-400 border border-[#7E22CE]/30 focus:outline-none focus:ring-2 focus:ring-[#7E22CE]"
               placeholder="Enter your name"
             />
           </div>
@@ -108,7 +108,7 @@ const SignUp = () => {
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-md bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 rounded-md bg-[#0F1729] text-white placeholder-gray-400 border border-[#7E22CE]/30 focus:outline-none focus:ring-2 focus:ring-[#7E22CE]"
               placeholder="Enter your email"
             />
           </div>
@@ -122,7 +122,7 @@ const SignUp = () => {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-2 rounded-md bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-2 rounded-md bg-[#0F1729] text-white placeholder-gray-400 border border-[#7E22CE]/30 focus:outline-none focus:ring-2 focus:ring-[#7E22CE]"
                 placeholder="Enter your password"
               />
               <button

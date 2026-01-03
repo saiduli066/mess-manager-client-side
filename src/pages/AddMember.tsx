@@ -28,8 +28,9 @@ export const AddMember = () => {
                     </div>
                     <h2 className="text-2xl font-bold mt-2">Add New Member</h2>
                     <p className="text-sm text-white/70 text-center">
-                        Share the invite code or link below with your friend to let them join your mess.
-                    </p>
+                        Share the invite code below with your friend to let them join your mess.
+                    </p>    
+         {/*Share the invite code or link below with your friend to let them join your mess.*/}
                 </div>
 
                 {/* Invite Code */}

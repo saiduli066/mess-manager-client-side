@@ -1,3 +1,4 @@
+// lib/types&interfaces/auth.ts
 export type TLoginData = {
   email: string;
   password: string;
@@ -8,7 +9,7 @@ export type TSignupData = {
   email: string;
   password: string;
   phone?: string;
-  image?: string; 
+  image?: string;
 };
 
 export interface IAuthUser {
@@ -21,9 +22,27 @@ export interface IAuthUser {
   messName: string;
   createdAt: string;
   updatedAt: string;
+  messId?: string;
+  mealCounts?: {
+    breakfast: number;
+    lunch: number;
+    dinner: number;
+  };
+  mealSwitches?: {
+    breakfast: {
+      isOn: boolean;
+      lastToggled?: string;
+    };
+    lunch: {
+      isOn: boolean;
+      lastToggled?: string;
+    };
+    dinner: {
+      isOn: boolean;
+      lastToggled?: string;
+    };
+  };
 }
-
-export type TUpdateProfile = FormData;
 
 export interface IAuthStore {
   authUser: IAuthUser | null;
