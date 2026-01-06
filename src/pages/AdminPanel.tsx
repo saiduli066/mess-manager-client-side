@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// components/AdminPanel.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,6 +17,15 @@ import { useMessStore } from "@/store/useMessStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import RippleLoader from "@/components/RippleLoader";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,9 +40,11 @@ import {
 export default function AdminPanel() {
   const { authUser } = useAuthStore();
   const { mess, members, getMessMembers, promoteToAdmin, demoteToMember, removeMember, isLoading } = useMessStore();
+  const { checkOnlineAndWarn } = useOnlineStatus();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "member">("all");
+  const [sortBy, setSortBy] = useState("name");
   const [removeDialog, setRemoveDialog] = useState<{ open: boolean; member: any }>({ open: false, member: null });
 
   useEffect(() => {
@@ -44,12 +54,26 @@ export default function AdminPanel() {
   }, [mess?._id, getMessMembers]);
 
   // Show ALL members (including current admin) but filter by search and role
-  const filteredMembers = members.filter(member => {
-    const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || member.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+  const filteredMembers = members
+    .filter(member => {
+      const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = roleFilter === "all" || member.role === roleFilter;
+      return matchesSearch && matchesRole;
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") {
+        return a.name.localeCompare(b.name);
+      } else if (sortBy === "role") {
+        if (a.role === "admin" && b.role !== "admin") return -1;
+        if (a.role !== "admin" && b.role === "admin") return 1;
+        return a.name.localeCompare(b.name);
+      }
+      return 0;
+    });
+
+  // Separate admins and members
+  const adminMembers = filteredMembers.filter(m => m.role === "admin");
+  const regularMembers = filteredMembers.filter(m => m.role === "member");
 
   // Count stats - include ALL members
   const stats = {
@@ -60,6 +84,10 @@ export default function AdminPanel() {
 
   const handlePromote = async (memberId: string, memberName: string) => {
     if (!mess?._id) return;
+
+    if (!checkOnlineAndWarn('promote a member to admin')) {
+      return;
+    }
 
     setProcessingId(memberId);
     try {
@@ -83,6 +111,10 @@ export default function AdminPanel() {
       return;
     }
 
+    if (!checkOnlineAndWarn('demote an admin to member')) {
+      return;
+    }
+
     setProcessingId(memberId);
     try {
       await demoteToMember(mess._id, memberId);
@@ -102,6 +134,10 @@ export default function AdminPanel() {
     // Prevent self-removal
     if (memberId === authUser?._id) {
       toast.error("You cannot remove yourself from the mess");
+      return;
+    }
+
+    if (!checkOnlineAndWarn('remove a member')) {
       return;
     }
 
@@ -143,41 +179,7 @@ export default function AdminPanel() {
 
   if (!authUser || authUser.role !== "admin") {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4"
-        style={{
-          background: "linear-gradient(to bottom, #0F1729, #1A2332)",
-        }}
-      >
-        <Card className="w-full max-w-md mx-auto shadow-2xl border-[#7E22CE]/30 rounded-2xl overflow-hidden"
-          style={{
-            backgroundColor: "#1A2332",
-            borderColor: "rgba(126, 34, 206, 0.3)",
-          }}
-        >
-          <div className="p-6 border-b border-[#7E22CE]/20">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center bg-red-500/10 backdrop-blur-sm border-2 border-red-500/30">
-              <Shield className="w-10 h-10 text-red-400" />
-            </div>
-            <h3 className="text-2xl font-bold text-center text-red-400">
-              Access Restricted
-            </h3>
-          </div>
-          <CardContent className="p-8 text-center space-y-4">
-            <p className="text-gray-300 text-lg leading-relaxed">
-              This panel requires <span className="text-[#9D47DE] font-semibold">Admin privileges</span> to access.
-            </p>
-            <p className="text-gray-400 text-sm">
-              Contact your mess admin if you need elevated permissions.
-            </p>
-            <Button
-              onClick={() => window.location.href = "/home"}
-              className="w-full mt-6 bg-gradient-to-r from-[#7E22CE] to-[#9D47DE] hover:from-[#6B1AB5] hover:to-[#7E22CE] text-white font-medium py-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-[#7E22CE]/50"
-            >
-              Return to Home
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <RippleLoader size="lg" />
     );
   }
 
@@ -290,6 +292,17 @@ export default function AdminPanel() {
                   />
                 </div>
 
+                {/* Sort Dropdown */}
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-full sm:w-40 bg-[#0F1729] border-[#7E22CE]/30 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1A2332] border-[#7E22CE]/30">
+                    <SelectItem value="name" className="text-white">Sort by Name</SelectItem>
+                    <SelectItem value="role" className="text-white">Sort by Role</SelectItem>
+                  </SelectContent>
+                </Select>
+
                 <div className="flex border border-[#7E22CE]/30 rounded-lg overflow-hidden"
                   style={{ backgroundColor: "#0F1729" }}
                 >
@@ -359,153 +372,55 @@ export default function AdminPanel() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                {/* Mobile Cards */}
-                <div className="sm:hidden space-y-3">
-                  {filteredMembers.map((member) => (
-                    <Card key={member._id} className="border-[#7E22CE]/30 shadow-md"
-                      style={{
-                        backgroundColor: "#0F1729",
-                        borderColor: "rgba(126, 34, 206, 0.3)",
-                      }}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="h-10 w-10 border-2 border-[#7E22CE]/30">
-                              <AvatarImage src={member.image} />
-                              <AvatarFallback className="bg-[#1A2332] text-white">
-                                {getInitials(member.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <p className="font-semibold text-white">{member.name}</p>
-                                {isCurrentUser(member._id) && (
-                                  <Badge variant="outline" className="text-xs border-[#7E22CE] text-[#7E22CE]">
-                                    You
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-400">{member.email}</p>
-                            </div>
-                          </div>
-                          <Badge
-                            variant={member.role === "admin" ? "default" : "secondary"}
-                            className={member.role === "admin" ? "bg-[#850fdf] text-white hover:bg-[#9D47DE]" : "bg-[#7E22CE]/20 text-[#7E22CE] hover:bg-[#7E22CE]/20"}
-                          >
-                            {member.role}
-                          </Badge>
-                        </div>
+              <div className="space-y-6">
+                {/* Admins Section */}
+                {(roleFilter === "all" || roleFilter === "admin") && adminMembers.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 pb-2 border-b border-[#7E22CE]/20">
+                      <Crown className="w-5 h-5 text-yellow-500" />
+                      <h3 className="text-lg font-semibold text-white">Admins</h3>
+                      <Badge className="ml-2 bg-[#9D47DE] text-white">{adminMembers.length}</Badge>
+                    </div>
 
-                        <div className="flex space-x-2">
-                          {member.role === "member" ? (
-                            <Button
-                              size="sm"
-                              onClick={() => handlePromote(member._id, member.name)}
-                              disabled={processingId === member._id}
-                              className="flex-1 bg-[#9D47DE] hover:bg-[#7E22CE] text-white border-0 disabled:opacity-50 disabled:bg-[#9D47DE] disabled:cursor-not-allowed"
-                            >
-                              {processingId === member._id ? (
-                                <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                              ) : (
-                                <>
-                                  <Shield className="w-4 h-4 mr-1" />
-                                  Promote
-                                </>
-                              )}
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleDemote(member._id, member.name)}
-                              disabled={processingId === member._id || isCurrentUser(member._id)}
-                              className="flex-1 border-[#7E22CE] text-[#7E22CE] hover:bg-[#7E22CE] hover:text-white disabled:opacity-40 disabled:border-[#7E22CE]/30 disabled:text-[#7E22CE]/50 disabled:cursor-not-allowed"
-                            >
-                              {processingId === member._id ? (
-                                <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-[#7E22CE]"></div>
-                              ) : (
-                                <>
-                                  <ShieldOff className="w-4 h-4 mr-1 " />
-                                  Demote
-                                </>
-                              )}
-                            </Button>
-                          )}
+                    {/* Mobile Cards */}
+                    <div className="sm:hidden space-y-3">
+                      {adminMembers.map((member) => (
+                        <Card key={member._id} className="border-[#7E22CE]/30 shadow-md"
+                          style={{
+                            backgroundColor: "#0F1729",
+                            borderColor: "rgba(126, 34, 206, 0.3)",
+                          }}
+                        >
+                          <CardContent className="p-3">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <Avatar className="h-12 w-12 border-2 border-[#7E22CE]/30 flex-shrink-0">
+                                  <AvatarImage src={member.image} />
+                                  <AvatarFallback className="bg-gradient-to-br from-[#7E22CE] to-[#9D47DE] text-white text-sm font-semibold">
+                                    {getInitials(member.name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="font-semibold text-white truncate">{member.name}</p>
+                                    {isCurrentUser(member._id) && (
+                                      <Badge className="px-2 py-0.5 bg-blue-500 text-white text-xs">
+                                        YOU
+                                      </Badge>
+                                    )}
+                                  </div>
 
-                          <Button
-                            size="sm"
-                            onClick={() => openRemoveDialog(member)}
-                            disabled={processingId === member._id || isCurrentUser(member._id)}
-                            className="bg-red-500 text-white border-0 hover:bg-red-600 disabled:opacity-50 disabled:bg-red-500 disabled:cursor-not-allowed"
-                          >
-                            <UserX className="w-4 h-4 mr-1" />
-                            Remove
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                {/* Desktop Table */}
-                <div className="hidden sm:block overflow-hidden rounded-lg border border-[#7E22CE]/30"
-                  style={{ backgroundColor: "#0F1729" }}
-                >
-                  <table className="w-full">
-                    <thead className="border-b border-[#7E22CE]/20"
-                      style={{ backgroundColor: "#1A2332" }}
-                    >
-                      <tr>
-                        <th className="text-left p-4 font-semibold text-white">Member</th>
-                        <th className="text-left p-4 font-semibold text-white">Email</th>
-                        <th className="text-left p-4 font-semibold text-white">Role</th>
-                        <th className="text-right p-4 font-semibold text-white">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#7E22CE]/20">
-                      {filteredMembers.map((member) => (
-                        <tr key={member._id} className="hover:bg-[#1A2332]/50 transition-colors">
-                          <td className="p-4">
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-9 w-9 border border-[#7E22CE]/30">
-                                <AvatarImage src={member.image} />
-                                <AvatarFallback className="bg-[#1A2332] text-white text-sm">
-                                  {getInitials(member.name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex items-center space-x-2">
-                                <span className="font-medium text-white">{member.name}</span>
-                                {isCurrentUser(member._id) && (
-                                  <Badge variant="outline" className="text-xs border-[#7E22CE] text-[#7E22CE]">
-                                    You
-                                  </Badge>
-                                )}
+                                </div>
                               </div>
                             </div>
-                          </td>
-                          <td className="p-4 text-gray-400">{member.email}</td>
-                          <td className="p-4">
-                            <Badge
-                              variant={member.role === "admin" ? "default" : "secondary"}
-                              className={member.role === "admin"
-                                ? "bg-[#9D47DE] text-white hover:bg-[#9D47DE]"
-                                : "bg-[#7E22CE]/20 text-[#7E22CE] hover:bg-[#7E22CE]/20"
-                              }
-                            >
-                              {member.role === "admin" && <Crown className="w-3 h-3 mr-1" />}
-                              {member.role}
-                            </Badge>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex justify-end space-x-2">
+
+                            <div className="flex space-x-2">
                               {member.role === "member" ? (
                                 <Button
                                   size="sm"
                                   onClick={() => handlePromote(member._id, member.name)}
                                   disabled={processingId === member._id}
-                                  className="bg-[#9D47DE] hover:bg-[#7E22CE] text-white border-0 disabled:opacity-50 disabled:bg-[#9D47DE] disabled:cursor-not-allowed"
+                                  className="flex-1 bg-[#9D47DE] hover:bg-[#7E22CE] text-white border-0 disabled:opacity-50 disabled:bg-[#9D47DE] disabled:cursor-not-allowed"
                                 >
                                   {processingId === member._id ? (
                                     <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
@@ -522,13 +437,13 @@ export default function AdminPanel() {
                                   variant="outline"
                                   onClick={() => handleDemote(member._id, member.name)}
                                   disabled={processingId === member._id || isCurrentUser(member._id)}
-                                  className="border-[#7E22CE] text-[#7E22CE] hover:bg-[#7E22CE] hover:text-white disabled:opacity-40 disabled:border-[#7E22CE]/30 disabled:text-[#7E22CE]/50 disabled:cursor-not-allowed"
+                                  className="flex-1 border-[#7E22CE] text-[#7E22CE] hover:bg-[#7E22CE] hover:text-white disabled:opacity-40 disabled:border-[#7E22CE]/30 disabled:text-[#7E22CE]/50 disabled:cursor-not-allowed"
                                 >
                                   {processingId === member._id ? (
                                     <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-[#7E22CE]"></div>
                                   ) : (
                                     <>
-                                      <ShieldOff className="w-4 h-4 mr-1" />
+                                      <ShieldOff className="w-4 h-4 mr-1 " />
                                       Demote
                                     </>
                                   )}
@@ -545,12 +460,256 @@ export default function AdminPanel() {
                                 Remove
                               </Button>
                             </div>
-                          </td>
-                        </tr>
+                          </CardContent>
+                        </Card>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </div>
+
+                    {/* Desktop Table - Admins */}
+                    <div className="hidden sm:block overflow-hidden rounded-lg border border-[#7E22CE]/30"
+                      style={{ backgroundColor: "#0F1729" }}
+                    >
+                      <table className="w-full">
+                        <thead className="border-b border-[#7E22CE]/20"
+                          style={{ backgroundColor: "#1A2332" }}
+                        >
+                          <tr>
+                            <th className="text-left p-4 font-semibold text-white">Member</th>
+                            <th className="text-left p-4 font-semibold text-white">Role</th>
+                            <th className="text-center p-4 font-semibold text-white">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#7E22CE]/20">
+                          {adminMembers.map((member) => (
+                            <tr key={member._id} className="hover:bg-[#1A2332]/50 transition-colors">
+                              <td className="p-4">
+                                <div className="flex items-center space-x-3">
+                                  <Avatar className="h-9 w-9 border border-[#7E22CE]/30">
+                                    <AvatarImage src={member.image} />
+                                    <AvatarFallback className="bg-[#1A2332] text-white text-sm">
+                                      {getInitials(member.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-medium text-white">{member.name}</span>
+                                    {isCurrentUser(member._id) && (
+                                      <Badge variant="outline" className="text-xs border-[#7E22CE] text-[#7E22CE]">
+                                        You
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <Badge
+                                  variant={member.role === "admin" ? "default" : "secondary"}
+                                  className={member.role === "admin"
+                                    ? "bg-[#9D47DE] text-white hover:bg-[#9D47DE]"
+                                    : "bg-[#7E22CE]/20 text-[#7E22CE] hover:bg-[#7E22CE]/20"
+                                  }
+                                >
+                                  {member.role === "admin" && <Crown className="w-3 h-3 mr-1" />}
+                                  {member.role}
+                                </Badge>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex justify-center space-x-2">
+                                  {member.role === "member" ? (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handlePromote(member._id, member.name)}
+                                      disabled={processingId === member._id}
+                                      className="bg-[#9D47DE] hover:bg-[#7E22CE] text-white border-0 disabled:opacity-50 disabled:bg-[#9D47DE] disabled:cursor-not-allowed"
+                                    >
+                                      {processingId === member._id ? (
+                                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                                      ) : (
+                                        <>
+                                          <Shield className="w-4 h-4 mr-1" />
+                                          Promote
+                                        </>
+                                      )}
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleDemote(member._id, member.name)}
+                                      disabled={processingId === member._id || isCurrentUser(member._id)}
+                                      className="border-[#7E22CE] text-[#7E22CE] hover:bg-[#7E22CE] hover:text-white disabled:opacity-40 disabled:border-[#7E22CE]/30 disabled:text-[#7E22CE]/50 disabled:cursor-not-allowed"
+                                    >
+                                      {processingId === member._id ? (
+                                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-[#7E22CE]"></div>
+                                      ) : (
+                                        <>
+                                          <ShieldOff className="w-4 h-4 mr-1" />
+                                          Demote
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+
+                                  <Button
+                                    size="sm"
+                                    onClick={() => openRemoveDialog(member)}
+                                    disabled={processingId === member._id || isCurrentUser(member._id)}
+                                    className="bg-red-500 text-white border-0 hover:bg-red-600 disabled:opacity-50 disabled:bg-red-500 disabled:cursor-not-allowed"
+                                  >
+                                    <UserX className="w-4 h-4 mr-1" />
+                                    Remove
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Regular Members Section */}
+                {(roleFilter === "all" || roleFilter === "member") && regularMembers.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 pb-2 border-b border-[#7E22CE]/20">
+                      <UserCheck className="w-5 h-5 text-green-500" />
+                      <h3 className="text-lg font-semibold text-white">Regular Members</h3>
+                      <Badge className="ml-2 bg-[#7E22CE] text-white">{regularMembers.length}</Badge>
+                    </div>
+
+                    {/* Mobile Cards */}
+                    <div className="sm:hidden space-y-3">
+                      {regularMembers.map((member) => (
+                        <Card key={member._id} className="border-[#7E22CE]/30 shadow-md"
+                          style={{
+                            backgroundColor: "#0F1729",
+                            borderColor: "rgba(126, 34, 206, 0.3)",
+                          }}
+                        >
+                          <CardContent className="p-3">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <Avatar className="h-12 w-12 border-2 border-[#7E22CE]/30 flex-shrink-0">
+                                  <AvatarImage src={member.image} />
+                                  <AvatarFallback className="bg-gradient-to-br from-[#7E22CE] to-[#9D47DE] text-white text-sm font-semibold">
+                                    {getInitials(member.name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="font-semibold text-white truncate">{member.name}</p>
+                                    {isCurrentUser(member._id) && (
+                                      <Badge className="px-2 py-0.5 bg-blue-500 text-white text-xs">
+                                        YOU
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handlePromote(member._id, member.name)}
+                                disabled={processingId === member._id}
+                                className="flex-1 bg-[#9D47DE] hover:bg-[#7E22CE] text-white border-0 disabled:opacity-50 disabled:bg-[#9D47DE] disabled:cursor-not-allowed"
+                              >
+                                {processingId === member._id ? (
+                                  <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                                ) : (
+                                  <>
+                                    <Shield className="w-4 h-4 mr-1" />
+                                    Promote
+                                  </>
+                                )}
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                onClick={() => openRemoveDialog(member)}
+                                disabled={processingId === member._id || isCurrentUser(member._id)}
+                                className="bg-red-500 text-white border-0 hover:bg-red-600 disabled:opacity-50 disabled:bg-red-500 disabled:cursor-not-allowed"
+                              >
+                                <UserX className="w-4 h-4 mr-1" />
+                                Remove
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Desktop Table - Regular Members */}
+                    <div className="hidden sm:block overflow-hidden rounded-lg border border-[#7E22CE]/30"
+                      style={{ backgroundColor: "#0F1729" }}
+                    >
+                      <table className="w-full">
+                        <thead className="border-b border-[#7E22CE]/20"
+                          style={{ backgroundColor: "#1A2332" }}
+                        >
+                          <tr>
+                            <th className="text-left p-4 font-semibold text-white">Member</th>
+                            <th className="text-center p-4 font-semibold text-white">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#7E22CE]/20">
+                          {regularMembers.map((member) => (
+                            <tr key={member._id} className="hover:bg-[#1A2332]/50 transition-colors">
+                              <td className="p-4">
+                                <div className="flex items-center space-x-3">
+                                  <Avatar className="h-9 w-9 border border-[#7E22CE]/30">
+                                    <AvatarImage src={member.image} />
+                                    <AvatarFallback className="bg-gradient-to-br from-[#7E22CE] to-[#9D47DE] text-white text-sm font-semibold">
+                                      {getInitials(member.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-medium text-white">{member.name}</span>
+                                    {isCurrentUser(member._id) && (
+                                      <Badge className="px-2 py-0.5 bg-blue-500 text-white text-xs">
+                                        YOU
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex justify-center space-x-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handlePromote(member._id, member.name)}
+                                    disabled={processingId === member._id}
+                                    className="bg-[#9D47DE] hover:bg-[#7E22CE] text-white border-0 disabled:opacity-50 disabled:bg-[#9D47DE] disabled:cursor-not-allowed"
+                                  >
+                                    {processingId === member._id ? (
+                                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                                    ) : (
+                                      <>
+                                        <Shield className="w-4 h-4 mr-1" />
+                                        Promote
+                                      </>
+                                    )}
+                                  </Button>
+
+                                  <Button
+                                    size="sm"
+                                    onClick={() => openRemoveDialog(member)}
+                                    disabled={processingId === member._id || isCurrentUser(member._id)}
+                                    className="bg-red-500 text-white border-0 hover:bg-red-600 disabled:opacity-50 disabled:bg-red-500 disabled:cursor-not-allowed"
+                                  >
+                                    <UserX className="w-4 h-4 mr-1" />
+                                    Remove
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

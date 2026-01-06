@@ -3,13 +3,17 @@ import Sidebar from './components/Sidebar';
 import { useAuthStore } from './store/useAuthStore';
 import { useEffect, useState } from 'react';
 import type { IAuthStore } from './lib/types&interfaces/auth';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import RippleLoader from './components/RippleLoader';
 import { Menu } from 'lucide-react';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
+import OfflinePage from './components/OfflinePage';
 
 const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isOnline } = useOnlineStatus();
 
   const checkAuth = useAuthStore((state: IAuthStore) => state.checkAuth);
+  const authUser = useAuthStore((state) => state.authUser);
   const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth);
 
   useEffect(() => {
@@ -22,25 +26,15 @@ const App = () => {
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#334155] p-4">
-        <div className="relative">
-          {/* Glow effect */}
-          <div className="absolute inset-0 rounded-full bg-purple-500/20 blur-3xl scale-150" />
-
-          {/* Lottie animation */}
-          <div className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-72 lg:h-72 xl:w-64 xl:h-64">
-            <DotLottieReact
-              src="https://lottie.host/26dfed0f-655e-4d48-bbd1-86cc7bdfd29c/Ia0U6ar4rU.lottie"
-              loop
-              autoplay
-              className="w-full h-full"
-            />
-          </div>
-        </div>
-      </div>
-
-
+      <RippleLoader size="lg" />
     );
+  }
+
+  // Global Offline Check for Unauthenticated Users
+  // If we are offline and don't have a user session, show the offline page
+  // logic: if online is false AND no user, we can't do anything.
+  if (!isOnline && !authUser) {
+    return <OfflinePage />;
   }
 
   if (isAuthPage) {

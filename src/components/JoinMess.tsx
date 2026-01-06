@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMessStore } from "@/store/useMessStore";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 
 export const JoinMess = () => {
     const { joinMess, isLoading } = useMessStore();
+    const { checkOnlineAndWarn } = useOnlineStatus();
     const [code, setCode] = useState("");
     const [searchParams] = useSearchParams();
     const [hasAutoJoined, setHasAutoJoined] = useState(false);
@@ -17,7 +19,6 @@ export const JoinMess = () => {
     useEffect(() => {
         const inviteCode = searchParams.get("code");
 
-        //  auto-join if code is present.
         if (inviteCode && !hasAutoJoined) {
             setCode(inviteCode);
             joinMess(inviteCode);
@@ -27,6 +28,11 @@ export const JoinMess = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!checkOnlineAndWarn('join a mess')) {
+            return;
+        }
+
         await joinMess(code.trim());
         navigate("/home");
         setCode("");

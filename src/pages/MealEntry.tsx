@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useMessStore } from "@/store/useMessStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Utensils, Calendar, Users } from "lucide-react";
+import { Utensils, Calendar } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import RippleLoader from "@/components/RippleLoader";
 
 interface MemberMeal {
     userId: string;
@@ -19,6 +20,8 @@ interface MemberMeal {
     lunchUseInput: boolean;
     dinnerUseInput: boolean;
 }
+
+import NoMessFound from "@/components/NoMessFound";
 
 const MealEntry = () => {
     const today = new Date().toISOString().split("T")[0];
@@ -139,63 +142,13 @@ const MealEntry = () => {
 
     if (!authUser?.messId) {
         return (
-            <div className="min-h-screen bg-[#0F1729] flex items-center justify-center p-4">
-                <Card className="w-full max-w-md mx-auto rounded-xl shadow-md bg-[#1A2332] border border-[#7E22CE]/30">
-                    <CardContent className="p-6 text-center">
-                        <Users className="w-12 h-12 text-[#9D47DE] mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-white mb-2">
-                            Join a Mess
-                        </h3>
-                        <p className="text-gray-300 mb-4">
-                            You need to join a mess to use the meal management system.
-                        </p>
-                        <Button className="bg-[#7E22CE] hover:bg-[#6B1AB5]" onClick={() => (window.location.href = "/mess")}>
-                            Join a Mess
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+            <NoMessFound message="You need to join a mess to use the meal management system." />
         );
     }
 
-    // Check if user is admin
     if (authUser?.role !== "admin") {
         return (
-            <div className="min-h-screen flex items-center justify-center p-4"
-                style={{
-                    background: "linear-gradient(to bottom, #0F1729, #1A2332)",
-                }}
-            >
-                <Card className="w-full max-w-md mx-auto shadow-2xl border-[#7E22CE]/30 rounded-2xl overflow-hidden"
-                    style={{
-                        backgroundColor: "#1A2332",
-                        borderColor: "rgba(126, 34, 206, 0.3)",
-                    }}
-                >
-                    <div className="p-6 border-b border-[#7E22CE]/20">
-                        <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center bg-red-500/10 backdrop-blur-sm border-2 border-red-500/30">
-                            <Utensils className="w-10 h-10 text-red-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-center text-red-400">
-                            Access Restricted
-                        </h3>
-                    </div>
-                    <CardContent className="p-8 text-center space-y-4">
-                        <p className="text-gray-300 text-lg leading-relaxed">
-                            Only <span className="text-[#9D47DE] font-semibold">Admins</span> can add meal counts for the mess.
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                            Contact your mess admin if you need to update meal entries.
-                        </p>
-                        <Button
-                            onClick={() => window.location.href = "/home"}
-                            className="w-full mt-6 bg-gradient-to-r from-[#7E22CE] to-[#9D47DE] hover:from-[#6B1AB5] hover:to-[#7E22CE] text-white font-medium py-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-[#7E22CE]/50"
-                        >
-                            Return to Home
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+            <RippleLoader size="lg" />
         );
     }
 

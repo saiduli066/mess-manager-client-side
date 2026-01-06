@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// components/UserMealStatistics.tsx
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,6 @@ import {
     applyWatermarkToAllPages,
     addSectionHeader,
 } from "@/lib/pdfUtils";
-// import { format } from "date-fns";
 import {
     BarChart,
     Bar,

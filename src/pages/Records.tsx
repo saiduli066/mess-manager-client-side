@@ -1,4 +1,3 @@
-// pages/Records.tsx
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -19,8 +18,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import NoMessFound from "@/components/NoMessFound";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import autoTable from "jspdf-autotable";
 import {
     createUnMessPDF,
@@ -44,7 +43,6 @@ const getYearOptions = () => {
 };
 
 const Records = () => {
-    const navigate = useNavigate();
     const {
         mess,
         entriesReport,
@@ -161,15 +159,7 @@ const Records = () => {
 
     if (!mess?._id || mess._id.trim() === "") {
         return (
-            <div className="h-screen w-full flex flex-col items-center justify-center space-y-4 bg-[#0F1729]">
-                <p className="text-lg text-amber-400">⚠️ No mess found.</p>
-                <Button
-                    className="bg-[#7E22CE] hover:bg-[#6B1AB5]"
-                    onClick={() => navigate("/entry-options")}
-                >
-                    Go to Create/Join A Mess
-                </Button>
-            </div>
+            <NoMessFound message="No mess found. You need to join a mess to view records." />
         );
     }
 

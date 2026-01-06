@@ -1,8 +1,7 @@
-import { NavLink } from 'react-router-dom';
-import logo from '../assets/UM-LOGO-1.svg';
+import { NavLink, useNavigate } from 'react-router-dom';
+import logo from '/un-mess-new_logo2-removebg-preview.png';
 import {
     Home,
-    // UtensilsCrossed,
     Users,
     PlusCircle,
     BarChart3,
@@ -10,7 +9,6 @@ import {
     X,
     Loader2,
     UserCog2,
-    // Settings2Icon,
     ShoppingCart,
     CalendarDays,
     CookingPotIcon,
@@ -33,7 +31,7 @@ const navItems = [
     { to: '/add-deposit', label: 'Add Deposit', icon: <PlusCircle className="h-5 w-5" />, adminOnly: false },
 
     // Mess Management - Admin and general
-    { to: '/turn-meal-on/off', label: 'Add Meal', icon: <CookingPotIcon className="h-5 w-5" />, adminOnly: true },
+    { to: '/turn-meal-on/off', label: 'Add MealCount', icon: <CookingPotIcon className="h-5 w-5" />, adminOnly: true },
     { to: '/bazar-notes', label: 'Bazar Notes', icon: <ShoppingCart className="h-5 w-5" />, adminOnly: false },
     { to: '/bills', label: 'Bills', icon: <Receipt className="h-5 w-5" />, adminOnly: false },
     { to: '/records', label: 'Records', icon: <BarChart3 className="h-5 w-5" />, adminOnly: false },
@@ -46,7 +44,6 @@ const navItems = [
     { to: '/my-mess', label: 'My Mess', icon: <WarehouseIcon className="h-5 w-5" />, adminOnly: false },
     { to: '/profile', label: 'My Profile', icon: <User className="h-5 w-5" />, adminOnly: false },
     { to: '/notification', label: 'Notifications', icon: <Bell className="h-5 w-5" />, adminOnly: false },
-    // { to: '/settings', label: 'Settings', icon: <Settings2Icon className="h-5 w-5" />, adminOnly: false }, 
 ];
 type SidebarProps = {
     isOpen: boolean;
@@ -55,6 +52,7 @@ type SidebarProps = {
 
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     const { logout, isLoggingOut, authUser } = useAuthStore();
+    const navigate = useNavigate();
     const [unreadCount, setUnreadCount] = useState(0);
 
     // Check if user is admin
@@ -65,11 +63,14 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
     useEffect(() => {
         const fetchUnreadCount = async () => {
+            // Only fetch if online
+            if (!navigator.onLine) return;
+
             try {
                 const response = await axiosInstance.get("/notifications/unread-count");
                 setUnreadCount(response.data.count);
             } catch (error) {
-                console.error("Error fetching unread count:", error);
+                // Silent fail for notifications
             }
         };
 
@@ -150,7 +151,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
                     {/* Profile Section */}
                     <div className="p-4 border-t border-white/10">
-                        <div className="flex items-center gap-3 mb-3">
+                        <div
+                            className="flex items-center gap-3 mb-3 cursor-pointer hover:bg-gray-800/30 p-2 rounded-lg transition-colors"
+                            onClick={() => navigate('/profile')}
+                        >
                             <div className='ring-1 text-purple-600 rounded-full'>
                                 {
                                     authUser?.image ? <>

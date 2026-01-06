@@ -11,12 +11,15 @@ import { axiosInstance } from "@/lib/axios";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import autoTable from "jspdf-autotable";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import {
     createUnMessPDF,
     getUnMessTableStyles,
     applyWatermarkToAllPages,
     addSectionHeader,
 } from "@/lib/pdfUtils";
+
+import NoMessFound from "@/components/NoMessFound";
 
 interface MemberPayment {
     userId: {
@@ -55,6 +58,7 @@ export default function Bills() {
 
     const { authUser } = useAuthStore();
     const { mess } = useMessStore();
+    const { checkOnlineAndWarn } = useOnlineStatus();
 
     const months = [
         "January", "February", "March", "April", "May", "June",
@@ -88,6 +92,10 @@ export default function Bills() {
     const createBill = async () => {
         if (!billName.trim() || !totalAmount.trim()) return;
 
+        if (!checkOnlineAndWarn('create a bill')) {
+            return;
+        }
+
         try {
             setCreating(true);
             const response = await axiosInstance.post("/bills", {
@@ -109,6 +117,10 @@ export default function Bills() {
     };
 
     const togglePayment = async (billId: string, memberId: string) => {
+        if (!checkOnlineAndWarn('update payment status')) {
+            return;
+        }
+
         try {
             const response = await axiosInstance.patch(`/bills/${billId}/payment/${memberId}`);
             setBills(bills.map((bill) => (bill._id === billId ? response.data : bill)));
@@ -120,6 +132,10 @@ export default function Bills() {
     };
 
     const deleteBill = async (billId: string) => {
+        if (!checkOnlineAndWarn('delete this bill')) {
+            return;
+        }
+
         if (!confirm("Are you sure you want to delete this bill?")) return;
 
         try {
@@ -145,6 +161,10 @@ export default function Bills() {
     const updateBillAmount = async (billId: string) => {
         if (!editAmount.trim() || parseFloat(editAmount) <= 0) {
             toast.error("Please enter a valid amount");
+            return;
+        }
+
+        if (!checkOnlineAndWarn('update bill amount')) {
             return;
         }
 
@@ -289,20 +309,7 @@ export default function Bills() {
 
     if (!authUser?.messId) {
         return (
-            <div className="min-h-screen bg-[#0F1729] flex items-center justify-center p-4">
-                <Card className="w-full max-w-md mx-auto rounded-xl shadow-md bg-[#1A2332] border border-[#7E22CE]/30">
-                    <CardContent className="p-6 text-center">
-                        <Users className="w-12 h-12 text-[#9D47DE] mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-white mb-2">Join a Mess</h3>
-                        <p className="text-gray-300 mb-4">
-                            You need to join a mess to manage bills.
-                        </p>
-                        <Button className="bg-[#7E22CE] hover:bg-[#6B1AB5]" onClick={() => (window.location.href = "/mess")}>
-                            Join a Mess
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+            <NoMessFound message="You need to join a mess to manage bills." />
         );
     }
 

@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// stores/useAuthStore.ts
 import { create } from "zustand";
 import { axiosInstance } from "@/lib/axios";
 import { toast } from "sonner";
@@ -22,12 +20,25 @@ export const useAuthStore = create<IAuthStore>((set) => ({
   isUpdatingProfile: false,
 
   checkAuth: async () => {
+    // If we're offline, don't even try to hit the API
+    if (!navigator.onLine) {
+      set({ isCheckingAuth: false });
+      console.log("⚠️ Offline - skipping auth check and keeping state");
+      return;
+    }
+
     try {
       set({ isCheckingAuth: true });
       const res = await axiosInstance.get<IAuthUser>("/auth/check");
       set({ authUser: res.data });
-    } catch (error) {
-      set({ authUser: null });
+    } catch (error: any) {
+      // Double check offline status in case it changed during request
+      if (navigator.onLine) {
+        console.log("❌ Auth check failed");
+        set({ authUser: null });
+      } else {
+        console.log("⚠️ Offline - keeping auth state");
+      }
     } finally {
       set({ isCheckingAuth: false });
     }

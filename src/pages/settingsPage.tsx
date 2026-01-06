@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 
 const SettingsPage = () => {
-    // Static demo data
     const staticMess = {
         name: "Demo Mess",
         logo: null
@@ -21,7 +20,6 @@ const SettingsPage = () => {
     };
 
     const handleSave = async () => {
-        // Client-side only for now
         toast.success("Mess settings updated (mock client-side)");
         console.log({
             name,

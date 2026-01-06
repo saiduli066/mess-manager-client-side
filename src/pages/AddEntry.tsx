@@ -8,6 +8,8 @@ import { useMessStore } from "@/store/useMessStore";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/useAuthStore";
 import type { MessEntryInput } from "@/lib/types&interfaces/mess";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import NoMessFound from "@/components/NoMessFound";
 type EntryType = "deposit" | "meal";
 
 const AddEntry = () => {
@@ -17,6 +19,7 @@ const AddEntry = () => {
   // const entryType: EntryType = isMeal ? "meal" : "deposit";
   const entryType: EntryType = isMeal ? "meal" : "deposit";
 
+  const { checkOnlineAndWarn } = useOnlineStatus();
 
   const {
     mess,
@@ -107,11 +110,9 @@ const AddEntry = () => {
   //Admin but not part of any mess
   if (!members?.length) {
     return (
-      <div className="flex justify-center items-center min-h-[250px] w-full px-4 bg-[#0F1729]">
-        <span className="text-lg md:text-xl font-semibold text-red-400 text-center">
-          ⚠️ Join a mess first to add {entryType} entries.
-        </span>
-      </div>
+      <NoMessFound
+        message={`Join a mess first to add ${entryType} entries.`}
+      />
     );
   }
 
@@ -124,6 +125,9 @@ const AddEntry = () => {
   };
 
   const handleSubmit = async () => {
+    if (!checkOnlineAndWarn(`add ${isMeal ? 'meal entries' : 'deposits'}`)) {
+      return;
+    }
     await addMessEntry(entries);
     setEntries((prev) => prev.map((entry) => ({ ...entry, amount: 0 })));
   };

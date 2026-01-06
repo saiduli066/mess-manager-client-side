@@ -1,4 +1,3 @@
-// pages/Home.tsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -103,8 +102,8 @@ const Home = () => {
                                         <p className="text-gray-400 text-xs font-medium">
                                             <TooltipProvider>
                                                 <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <span className="bg-amber-300 text-white p-1 pb-0.5 rounded-sm cursor-help">Top Eater</span>
+                                                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                        <span className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-1.5 py-0.5 md:px-2 md:py-1 rounded font-semibold shadow-md border border-amber-400/50 cursor-pointer active:scale-95 transition-transform">Top Eater</span>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
                                                         <p>Highest meal consumer</p>
@@ -150,8 +149,8 @@ const Home = () => {
                                         <p className="text-gray-400 text-xs font-medium">
                                             <TooltipProvider>
                                                 <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <span className="bg-amber-300 text-white p-1 pb-0.5 rounded-sm cursor-help">Needs Deposit</span>
+                                                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                        <span className="bg-gradient-to-r from-red-500 to-red-600 text-white px-1.5 py-0.5 md:px-2 md:py-1 rounded font-semibold shadow-md border border-red-400/50 cursor-pointer active:scale-95 transition-transform">Needs Deposit</span>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
                                                         <p>Lowest balance holder</p>

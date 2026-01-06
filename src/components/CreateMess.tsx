@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMessStore } from "@/store/useMessStore";
 import { useNavigate } from "react-router-dom";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 export const CreateMess = () => {
     const navigate = useNavigate();
-   
+    const { checkOnlineAndWarn } = useOnlineStatus();
 
     const { createMess, mess, isLoading } = useMessStore();
     const [name, setName] = useState("");
@@ -17,6 +18,11 @@ export const CreateMess = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
+
+        if (!checkOnlineAndWarn('create a mess')) {
+            return;
+        }
+
         await createMess(name.trim());
         navigate("/home");
 
@@ -44,7 +50,7 @@ export const CreateMess = () => {
                             onChange={(e) => setName(e.target.value)}
                             disabled={isLoading}
                             className="bg-white/60 text-white  focus:ring-purple-400 border border-white/30"
-                            />
+                        />
                     </div>
                     <Button
                         type="submit"

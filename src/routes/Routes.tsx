@@ -59,14 +59,6 @@ export const router = createBrowserRouter([
         element: <SignUp />,
       },
       {
-        path: "/forgot-password",
-        element: <ForgotPassword />,
-      },
-      {
-        path: "/reset-password/:token",
-        element: <ResetPassword />,
-      },
-      {
         path: "/create-mess",
         element: <ProtectRoutes>
           <CreateMess />
@@ -174,6 +166,14 @@ export const router = createBrowserRouter([
 
 
     ],
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/reset-password/:token",
+    element: <ResetPassword />,
   },
   // {
   //   path: "*",
