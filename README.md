@@ -6,6 +6,24 @@
 
 ---
 
+## 🔐 Demo Credentials
+
+Try out the application with these test accounts:
+
+**Admin Account:**
+
+- Email: `akash@mail.com`
+- Password: `123456`
+- _Full administrative access to create bills, manage members, and handle expenses_
+
+**Member Account:**
+
+- Email: `rafi@mail.com`
+- Password: `123456`
+- _Standard member access to view meals, bills, and personal statistics_
+
+---
+
 ## 🌟 Key Features
 
 ### 🚀 Core Functionality
